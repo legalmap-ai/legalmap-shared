@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseButton from 'src/components/BaseButton.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 import { ref } from 'vue';
 import { signUp, confirmSignUp } from 'aws-amplify/auth';

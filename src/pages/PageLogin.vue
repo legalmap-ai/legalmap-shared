@@ -37,7 +37,7 @@ import { ref } from 'vue';
 import { useUserStore } from '../stores/StoreUser';
 import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
-import BaseButton from 'src/components/BaseButton.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 defineOptions({
   name: 'PageLogin',

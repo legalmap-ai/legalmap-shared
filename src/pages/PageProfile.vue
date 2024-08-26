@@ -210,7 +210,6 @@
 <style lang="scss" scoped></style>
 
 <script lang="ts">
-// import BaseButton from 'src/components/BaseButton.vue';
 import { useUserStore } from '../stores/StoreUser';
 //import usersService from '../services/users.service';
 

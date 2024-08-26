@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseButton from 'src/components/BaseButton.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 import { useAuthenticator } from '@aws-amplify/ui-vue';
 import '@aws-amplify/ui-vue/styles.css';
