@@ -56,7 +56,25 @@ const linksList: LegalmapPagesProps[] = [
     title: 'Page Login',
     caption: 'LegalMap Login Page',
     icon: 'description',
-    link: 'PageLogin',
+    link: 'login',
+  },
+  {
+    title: 'Page Register account',
+    caption: 'LegalMap Register Page',
+    icon: 'description',
+    link: 'register',
+  },
+  {
+    title: 'Page Reset account',
+    caption: 'LegalMap Reset Account Page',
+    icon: 'description',
+    link: 'reset',
+  },
+  {
+    title: 'Page Profile',
+    caption: 'LegalMap User Profile Page',
+    icon: 'description',
+    link: 'profile',
   },
 ];
 

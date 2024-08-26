@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { Amplify } from 'aws-amplify';
 import { getCurrentUser, signIn, signOut } from 'aws-amplify/auth';
 
+// import awsconfigDev from '../../backend/dev/amplifyconfiguration.json';
+// import awsconfigMaster from '../../backend/master/amplifyconfiguration.json';
 import awsconfigDev from '../../backend/dev/aws-exports';
 import awsconfigMaster from '../../backend/master/aws-exports';
 
@@ -58,9 +60,11 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  const logout = async () => {
+  const logOut = async () => {
     try {
-      await signOut();
+      debugger;
+      const res = await signOut();
+      console.log(res);
       setUser(null);
       authStatus.value = 'unauthenticated';
       Notify.create({
@@ -79,14 +83,18 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  const loadUser = async () => {
-    try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      authStatus.value = 'authenticated';
-    } catch {
-      authStatus.value = 'unauthenticated';
-    }
+  const loadUser = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        authStatus.value = 'authenticated';
+        resolve(currentUser);
+      } catch (error) {
+        authStatus.value = 'unauthenticated';
+        reject(error);
+      }
+    });
   };
 
   const isAuthenticated = computed(() => authStatus.value === 'authenticated');
@@ -95,7 +103,7 @@ export const useUserStore = defineStore('user', () => {
     user,
     isAuthenticated,
     login,
-    logout,
+    logOut,
     loadUser,
   };
 });

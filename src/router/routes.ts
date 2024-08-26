@@ -12,9 +12,24 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: '', component: () => import('pages/BaseButton.vue') }],
   },
   {
-    path: '/PageLogin',
+    path: '/login',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/PageLogin.vue') }],
+  },
+  {
+    path: '/register',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageRegister.vue') }],
+  },
+  {
+    path: '/reset',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageReset.vue') }],
+  },
+  {
+    path: '/profile',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageProfile.vue') }],
   },
 
   {

@@ -39,6 +39,10 @@ import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
 import BaseButton from 'src/components/BaseButton.vue';
 
+defineOptions({
+  name: 'PageLogin',
+});
+
 const router = useRouter();
 const userStore = useUserStore();
 const username = ref('');
