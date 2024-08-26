@@ -57,8 +57,8 @@
 <script setup lang="ts">
 import BaseButton from '../components/BaseButton.vue';
 
-import { useAuthenticator } from '@aws-amplify/ui-vue';
-import '@aws-amplify/ui-vue/styles.css';
+// import { useAuthenticator } from '@aws-amplify/ui-vue';
+// import '@aws-amplify/ui-vue/styles.css';
 
 import { Amplify } from 'aws-amplify';
 import { ref, toRefs } from 'vue';
@@ -81,12 +81,12 @@ if (process.env.DEV) {
   console.log('Use production backend');
 }
 
-defineOptions({
-  name: 'PageReset',
-});
+// defineOptions({
+//   name: 'PageReset',
+// });
 
-const { authStatus } = toRefs(useAuthenticator());
-console.log(authStatus.value);
+// const { authStatus } = toRefs(useAuthenticator());
+// console.log(authStatus.value);
 
 const router = useRouter();
 

@@ -102,9 +102,9 @@ if (process.env.DEV) {
   console.log('Use production backend');
 }
 
-defineOptions({
-  name: 'PageRegister',
-});
+// defineOptions({
+//   name: 'PageRegister',
+// });
 
 const router = useRouter();
 
