@@ -11,8 +11,16 @@ export interface QueryError extends Error {
   };
 }
 
-const API_ENDPOINT =
-  'https://cwy1fwkqwl.execute-api.eu-west-3.amazonaws.com/dev';
+let API_ENDPOINT = '';
+
+if (process.env.DEV) {
+  API_ENDPOINT = 'https://cwy1fwkqwl.execute-api.eu-west-3.amazonaws.com/dev';
+  console.log('Use development api endpoint');
+} else {
+  API_ENDPOINT =
+    'https://qwsmwnyvf1.execute-api.eu-west-3.amazonaws.com/master';
+  console.log('Use master api endpoint');
+}
 
 export const getUserGroups = async () => {
   try {
