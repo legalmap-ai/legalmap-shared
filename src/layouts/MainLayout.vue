@@ -76,6 +76,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'description',
     link: 'profile',
   },
+  {
+    title: 'Page Services Users',
+    caption: 'LegalMap API users services',
+    icon: 'http',
+    link: 'services-users',
+  },
 ];
 
 const leftDrawerOpen = ref(false);
