@@ -61,7 +61,7 @@ import BaseButton from '../components/BaseButton.vue';
 // import '@aws-amplify/ui-vue/styles.css';
 
 import { Amplify } from 'aws-amplify';
-import { ref, toRefs } from 'vue';
+import { ref } from 'vue';
 import { resetPassword, confirmResetPassword } from 'aws-amplify/auth';
 import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
