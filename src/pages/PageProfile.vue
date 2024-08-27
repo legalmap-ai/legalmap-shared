@@ -1,18 +1,26 @@
 <template>
   <q-page class="q-pa-sm">
-    <div v-if="userState">
-      <div>State: {{ userState.signInDetails }}</div>
-      <div>State: {{ userState.userId }}</div>
-      <div>State: {{ userState.username }}</div>
-
-      <q-btn
-        label="Log Out"
-        class="text-capitalize"
-        rounded
-        color="info"
-        style="max-width: 120px"
-        @click="logOut"
-      ></q-btn>
+    <div v-if="access_token">
+      <div class="q-pa-sm"><b>Identifié en tant que:</b> {{ login_id }}</div>
+      <q-separator />
+      <div class="q-pa-sm">
+        <b>Heure de connexion:</b> {{ auth_time_date }} ({{ auth_time }})
+      </div>
+      <q-separator />
+      <div class="q-pa-sm"><b>Token:</b> {{ access_token }}</div>
+      <q-separator />
+      <div class="q-pa-sm"><b>Groupes:</b> {{ user_groups }}</div>
+      <q-separator />
+      <div class="q-pa-sm">
+        <q-btn
+          label="Log Out"
+          class="text-capitalize"
+          rounded
+          color="info"
+          style="max-width: 120px"
+          @click="logOut"
+        ></q-btn>
+      </div>
     </div>
     <div class="row q-col-gutter-sm">
       <div class="col-lg-12 col-md-12 col-xs-12 col-sm-12">
@@ -211,8 +219,6 @@
 
 <script lang="ts">
 import { useUserStore } from '../stores/StoreUser';
-//import usersService from '../services/users.service';
-
 import { defineComponent, onMounted, ref } from 'vue';
 
 export default defineComponent({
@@ -221,18 +227,24 @@ export default defineComponent({
   setup() {
     const userStore = useUserStore();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userState = ref<any>(null); // Update the type of userState to allow for null or undefined values
-
+    const access_token = ref<any>(null);
+    const login_id = ref<string | null>(null);
+    const user_groups = ref<[string] | []>([]);
+    const auth_time = ref<number | null>(null);
+    const auth_time_date = ref<string | null>(null);
     onMounted(() => {
       getUserState();
     });
 
     const getUserState = async () => {
       try {
-        const res = await userStore.loadUser();
-        userState.value = res;
+        access_token.value = await userStore.getAccessToken();
+        login_id.value = await userStore.getLoginId();
+        auth_time.value = await userStore.getAuthTime();
+        auth_time_date.value = await userStore.getAuthTimeDate();
+        user_groups.value = await userStore.getGroups();
       } catch (error) {
-        userState.value = null;
+        access_token.value = null;
         console.error(error);
       }
     };
@@ -240,9 +252,9 @@ export default defineComponent({
     const logOut = async () => {
       try {
         const res = await userStore.logOut();
-        userState.value = res;
+        access_token.value = res;
       } catch (error) {
-        userState.value = null;
+        access_token.value = null;
         console.error(error);
       }
     };
@@ -271,9 +283,13 @@ export default defineComponent({
     //   usersService.subscribeToPlan();
     // };
     return {
-      getUserState,
+      access_token,
+      user_groups,
+      login_id,
+      auth_time,
+      auth_time_date,
       logOut,
-      userState,
+      userStore,
       user_details,
       password_dict,
     };

@@ -45,8 +45,8 @@ import BaseButton from '../components/BaseButton.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
-const username = ref('');
-const password = ref('');
+const username = ref('abedoyere@gmail.com');
+const password = ref('Arnaud_1234');
 const isAuthenticated = userStore.isAuthenticated;
 
 const handleSubmit = async () => {

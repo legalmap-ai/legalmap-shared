@@ -16,6 +16,7 @@
     "@aws-amplify/ui-vue": "^4.2.11",
     "@quasar/extras": "^1.16.4",
     "aws-amplify": "^6.5.2",
+    "axios": "^1.7.5",
     "pinia": "^2.2.2",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",
