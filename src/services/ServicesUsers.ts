@@ -1,37 +1,67 @@
 import axios from 'axios';
-import { useUserStore } from '../stores/StoreUser';
+import { QueryError } from '../utils/api.utils';
+import { getApiEnpdpoint, getApiSignedTokenRequest } from '../utils/api.utils';
+import { AWSCredentials, useUserStore } from '../stores/StoreUser';
 
 const userStore = useUserStore();
 
-export interface QueryError extends Error {
-  response?: {
-    data?: {
-      error: string;
-    };
-  };
-}
+/**
+ * Fetches the groups associated with the current user.
+ *
+ * @returns A promise that resolves to a list of user groups.
+ * @throws Will throw an error if the API request fails.
+ */
+export async function getUserGroups() {
+  // Retrieve AWS credentials from the user store, ensuring they're up-to-date
+  const awsCredentials = (await userStore.getAWSCredentials(false)) as AWSCredentials;
 
-let API_ENDPOINT = '';
+  // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
+  const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
 
-if (process.env.DEV) {
-  API_ENDPOINT = 'https://cwy1fwkqwl.execute-api.eu-west-3.amazonaws.com/dev';
-  console.log('Use development api endpoint');
-} else {
-  API_ENDPOINT =
-    'https://qwsmwnyvf1.execute-api.eu-west-3.amazonaws.com/master';
-  console.log('Use master api endpoint');
-}
-
-export const getUserGroups = async () => {
   try {
+    // Make an API call using the signed request details
+    const response = await axios({
+      method: signedQyery.method,
+      baseURL: signedQyery.baseURL,
+      url: signedQyery.url,
+      data: signedQyery.data,
+      headers: signedQyery.headers,
+    });
+
+    // Return the list of groups from the API response
+    return response.data.groups;
+  } catch (error) {
+    // Log an error message if the API call fails and rethrow the error
+    console.error(
+      'API call failed',
+      (error as QueryError).response?.data || (error as QueryError).message || error
+    );
+    throw error;
+  }
+}
+
+/**
+ * Generates some data (e.g., a report or content) by calling a specific API endpoint.
+ *
+ * @returns A promise that resolves to the generated groups data.
+ * @throws Will throw an error if the API request fails.
+ */
+export const generate = async () => {
+  try {
+    // Retrieve the access token from the user store
     const access_token = await userStore.getAccessToken();
-    const response = await axios.get(`${API_ENDPOINT}/me/groups`, {
+
+    // Make a GET request to the specific API endpoint, using the access token for authorization
+    const response = await axios.get(`${getApiEnpdpoint()}/todo_here_generate_path`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     });
+
+    // Return the generated groups data from the API response
     return response.data.groups;
   } catch (error) {
+    // Rethrow the error if the API request fails
     throw error;
   }
 };

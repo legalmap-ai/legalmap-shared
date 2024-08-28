@@ -2,18 +2,20 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Amplify } from 'aws-amplify';
 import { GetCurrentUserOutput } from '@aws-amplify/auth';
-import {
-  fetchAuthSession,
-  getCurrentUser,
-  signIn,
-  signOut,
-} from '@aws-amplify/auth';
+import { fetchAuthSession, getCurrentUser, signIn, signOut } from '@aws-amplify/auth';
 import { Notify } from 'quasar';
 import { useRouter } from 'vue-router';
 
 // Environment configuration imports
 import awsconfigDev from '../../backend/dev/aws-exports';
 import awsconfigMaster from '../../backend/master/aws-exports';
+
+export interface AWSCredentials {
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken: string | undefined;
+  expiration: Date | undefined;
+}
 
 // Configure Amplify based on the environment
 if (process.env.DEV) {
@@ -27,10 +29,40 @@ if (process.env.DEV) {
 // Define Pinia store for user management
 export const useUserStore = defineStore('user', () => {
   const user = ref<null | GetCurrentUserOutput>(null); // Stores the current user
-  const authStatus = ref<'authenticated' | 'unauthenticated'>(
-    'unauthenticated'
-  ); // Authentication status
+  const authStatus = ref<'authenticated' | 'unauthenticated'>('unauthenticated'); // Authentication status
   const router = useRouter(); // Router for navigation
+
+  /**
+   * Retrieves the AWS credentials from the current session.
+   * @returns {Promise<AWSCredentials | null>} A promise that resolves with the AWS credentials or null in case of error
+   */
+  const getAWSCredentials = async (encoded = false) => {
+    try {
+      const session = await fetchAuthSession(); // Fetches the authentication session
+      const credentials = session?.credentials;
+      if (credentials) {
+        if (encoded) {
+          return {
+            accessKeyId: encodeURIComponent(credentials.accessKeyId),
+            secretAccessKey: encodeURIComponent(credentials.secretAccessKey),
+            sessionToken: credentials.sessionToken,
+            expiration: credentials.expiration,
+          };
+        } else {
+          return {
+            accessKeyId: credentials.accessKeyId,
+            secretAccessKey: credentials.secretAccessKey,
+            sessionToken: credentials.sessionToken,
+            expiration: credentials.expiration,
+          };
+        }
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
 
   /**
    * Retrieves the access token from the current session.
@@ -41,8 +73,7 @@ export const useUserStore = defineStore('user', () => {
       const session = await fetchAuthSession(); // Fetches the authentication session
       return session?.tokens?.accessToken?.toString() || null;
     } catch (error) {
-      console.error('Error fetching access token:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -55,8 +86,7 @@ export const useUserStore = defineStore('user', () => {
       const session = await fetchAuthSession(); // Fetches the authentication session
       return session?.tokens?.signInDetails?.loginId || null; //legalmap todo : signInDetails is deprecated
     } catch (error) {
-      console.error('Error fetching user login id:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -69,8 +99,7 @@ export const useUserStore = defineStore('user', () => {
       const session = await fetchAuthSession(); // Fetches the authentication session
       return (session?.tokens?.accessToken.payload.auth_time as number) || null;
     } catch (error) {
-      console.error('Error fetching user login id:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -98,8 +127,7 @@ export const useUserStore = defineStore('user', () => {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching user login time:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -110,13 +138,9 @@ export const useUserStore = defineStore('user', () => {
   const getGroups = async (): Promise<[string] | []> => {
     try {
       const session = await fetchAuthSession(); // Fetches the authentication session
-      return (
-        (session?.tokens?.accessToken.payload['cognito:groups'] as [string]) ||
-        []
-      );
+      return (session?.tokens?.accessToken.payload['cognito:groups'] as [string]) || [];
     } catch (error) {
-      console.error('Error fetching user login id:', error);
-      return [];
+      throw error;
     }
   };
 
@@ -233,6 +257,7 @@ export const useUserStore = defineStore('user', () => {
     resetUser,
     getGroups,
     getAccessToken,
+    getAWSCredentials,
     getLoginId,
     getAuthTime,
     getAuthTimeDate,

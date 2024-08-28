@@ -21,9 +21,7 @@
         label="Mot de passe"
       />
       <BaseButton style="width: 100%" type="submit">Se connecter</BaseButton>
-      <router-link to="/reset" class="forgot">
-        Mot de passe oublié ?
-      </router-link>
+      <router-link to="/reset" class="forgot"> Mot de passe oublié ? </router-link>
       <div class="have-account">
         Pas encore de compte ?
         <router-link to="/register">Créez-en un</router-link>
@@ -46,7 +44,7 @@ import BaseButton from '../components/BaseButton.vue';
 const router = useRouter();
 const userStore = useUserStore();
 const username = ref('abedoyere@gmail.com');
-const password = ref('Arnaud_1234');
+const password = ref('Arnaud_12345');
 const isAuthenticated = userStore.isAuthenticated;
 
 const handleSubmit = async () => {

@@ -3,11 +3,30 @@
     <form @submit.prevent="handleSubmit" v-if="!askCode">
       <h2>S'inscrire</h2>
       <q-input
+        class="q-mb-md"
+        outlined
+        type="text"
+        v-model="given_name"
+        placeholder="Prénom"
+        dense
+        label="Prénom"
+      />
+      <q-input
+        class="q-mb-md"
+        outlined
+        type="text"
+        v-model="family_name"
+        placeholder="Nom"
+        dense
+        label="Nom"
+      />
+
+      <q-input
+        class="q-mb-md input--email"
         outlined
         type="email"
         v-model="username"
         placeholder="Email"
-        class="input input--email"
         dense
         label="Email"
       />
@@ -21,7 +40,6 @@
         autocomplete="new-password"
         v-model="password"
         placeholder="Mot de passe"
-        class="input"
         label="Mot de passe"
       />
       <q-input
@@ -34,16 +52,13 @@
         autocomplete="new-password"
         v-model="password2"
         placeholder="Confirmer le mot de passe"
-        class="input"
         label="Confirmer le mot de passe"
       />
 
       <BaseButton
         style="width: 100%"
         type="submit"
-        :disabled="
-          !!passwordError || !!password2Error || !password || !password2
-        "
+        :disabled="!!passwordError || !!password2Error || !password || !password2"
       >
         S'inscrire
       </BaseButton>
@@ -54,9 +69,7 @@
     </form>
     <form v-else @submit.prevent="handleValidate">
       <h2>Confirmer votre email</h2>
-      <div class="subtitle">
-        Un code de vérification vous a été envoyé par email
-      </div>
+      <div class="subtitle">Un code de vérification vous a été envoyé par email</div>
       <q-input
         dense
         outlined
@@ -66,10 +79,7 @@
         class="input"
         label="Code de vérification"
       />
-      <BaseButton
-        style="width: 100%"
-        type="submit"
-        :disabled="!!passwordError || !password"
+      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
         >Réinitialiser</BaseButton
       >
     </form>
@@ -109,6 +119,9 @@ if (process.env.DEV) {
 const router = useRouter();
 
 const username = ref('');
+const given_name = ref('');
+const family_name = ref('');
+
 const code = ref('');
 const password = ref('');
 const password2 = ref('');
@@ -116,9 +129,16 @@ const askCode = ref(false);
 
 const handleSubmit = async () => {
   try {
+    //https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html
     const res = await signUp({
       username: username.value,
       password: password.value,
+      options: {
+        userAttributes: {
+          given_name: given_name.value,
+          family_name: family_name.value,
+        },
+      },
     });
 
     Notify.create({
@@ -197,14 +217,6 @@ const validatePassword2 = (text: string | number | null) => {
     color: $grey1;
     padding-bottom: 20px;
     text-align: center;
-  }
-
-  .input {
-    margin-bottom: 0px;
-  }
-
-  .input--email {
-    margin-bottom: 20px !important;
   }
 
   .forgot {

@@ -15,8 +15,11 @@
   "dependencies": {
     "@aws-amplify/ui-vue": "^4.2.11",
     "@quasar/extras": "^1.16.4",
+    "@types/crypto-js": "^4.2.2",
     "aws-amplify": "^6.5.2",
     "axios": "^1.7.5",
+    "crypto-js": "^4.2.0",
+    "moment": "^2.30.1",
     "pinia": "^2.2.2",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",

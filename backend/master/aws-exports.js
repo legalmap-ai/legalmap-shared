@@ -3,23 +3,33 @@
 
 const awsmobile = {
     "aws_project_region": "eu-west-3",
+    "aws_cloud_logic_custom": [
+        {
+            "name": "legalmapApiService",
+            "endpoint": "https://icf8oa4ege.execute-api.eu-west-3.amazonaws.com/master",
+            "region": "eu-west-3"
+        }
+    ],
+    "aws_cognito_identity_pool_id": "eu-west-3:75eaea34-70b1-482e-a7f6-ba15979dd8dd",
     "aws_cognito_region": "eu-west-3",
-    "aws_user_pools_id": "eu-west-3_4vkAONwF9",
-    "aws_user_pools_web_client_id": "1muqno1e7sttelkn4vp8hebo98",
+    "aws_user_pools_id": "eu-west-3_K4foElTri",
+    "aws_user_pools_web_client_id": "1hbepgpnq44uoe296cjefu0iat",
     "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
     ],
     "aws_cognito_social_providers": [],
     "aws_cognito_signup_attributes": [
-        "EMAIL"
+        "EMAIL",
+        "FAMILY_NAME",
+        "GIVEN_NAME"
     ],
     "aws_cognito_mfa_configuration": "OPTIONAL",
     "aws_cognito_mfa_types": [
         "SMS"
     ],
     "aws_cognito_password_protection_settings": {
-        "passwordPolicyMinLength": 6,
+        "passwordPolicyMinLength": 8,
         "passwordPolicyCharacters": [
             "REQUIRES_LOWERCASE",
             "REQUIRES_UPPERCASE",

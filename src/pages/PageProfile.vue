@@ -3,9 +3,7 @@
     <div v-if="access_token">
       <div class="q-pa-sm"><b>Identifié en tant que:</b> {{ login_id }}</div>
       <q-separator />
-      <div class="q-pa-sm">
-        <b>Heure de connexion:</b> {{ auth_time_date }} ({{ auth_time }})
-      </div>
+      <div class="q-pa-sm"><b>Heure de connexion:</b> {{ auth_time_date }} ({{ auth_time }})</div>
       <q-separator />
       <div class="q-pa-sm"><b>Token:</b> {{ access_token }}</div>
       <q-separator />
@@ -22,6 +20,9 @@
         ></q-btn>
       </div>
     </div>
+    <q-card-section v-if="error_message" class="text-negative">
+      Erreur: {{ error_message }}
+    </q-card-section>
     <div class="row q-col-gutter-sm">
       <div class="col-lg-12 col-md-12 col-xs-12 col-sm-12">
         <q-card>
@@ -56,22 +57,12 @@
 
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.user_name"
-                    label="User Name"
-                  />
+                  <q-input color="black" dense v-model="user_details.user_name" label="User Name" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.email"
-                    label="Email Address"
-                  />
+                  <q-input color="black" dense v-model="user_details.email" label="Email Address" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -86,12 +77,7 @@
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.last_name"
-                    label="Last Name"
-                  />
+                  <q-input color="black" dense v-model="user_details.last_name" label="Last Name" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -107,12 +93,7 @@
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.city"
-                    label="City"
-                  />
+                  <q-input color="black" dense v-model="user_details.city" label="City" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -139,9 +120,7 @@
             </q-list>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn class="text-capitalize bg-info text-white"
-              >Update User Info</q-btn
-            >
+            <q-btn class="text-capitalize bg-info text-white">Update User Info</q-btn>
           </q-card-actions>
         </q-card>
       </div>
@@ -205,9 +184,7 @@
             </q-item>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn class="text-capitalize bg-info text-white"
-              >Change Password</q-btn
-            >
+            <q-btn class="text-capitalize bg-info text-white">Change Password</q-btn>
           </q-card-actions>
         </q-card>
       </div>
@@ -218,14 +195,18 @@
 <style lang="scss" scoped></style>
 
 <script lang="ts">
+import { QueryError } from '../utils/api.utils';
 import { useUserStore } from '../stores/StoreUser';
 import { defineComponent, onMounted, ref } from 'vue';
+import { translateError } from '../utils/errors.utils';
 
 export default defineComponent({
   name: 'LegalmapPages',
   props: {},
   setup() {
     const userStore = useUserStore();
+    const error_message = ref<string | null>(null);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const access_token = ref<any>(null);
     const login_id = ref<string | null>(null);
@@ -244,8 +225,8 @@ export default defineComponent({
         auth_time_date.value = await userStore.getAuthTimeDate();
         user_groups.value = await userStore.getGroups();
       } catch (error) {
+        error_message.value = translateError(error as QueryError);
         access_token.value = null;
-        console.error(error);
       }
     };
 
@@ -283,6 +264,7 @@ export default defineComponent({
     //   usersService.subscribeToPlan();
     // };
     return {
+      error_message,
       access_token,
       user_groups,
       login_id,
