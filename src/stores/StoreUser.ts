@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Amplify } from 'aws-amplify';
-import { GetCurrentUserOutput } from '@aws-amplify/auth';
-import { fetchAuthSession, getCurrentUser, signIn, signOut } from '@aws-amplify/auth';
+//https://aws-amplify.github.io/amplify-js/api/functions/aws_amplify.auth.fetchAuthSession.html
+import {
+  fetchAuthSession,
+  GetCurrentUserOutput,
+  getCurrentUser,
+  signIn,
+  signOut,
+} from '@aws-amplify/auth';
+
 import { Notify } from 'quasar';
 import { useRouter } from 'vue-router';
 
@@ -34,11 +41,34 @@ export const useUserStore = defineStore('user', () => {
 
   /**
    * Retrieves the AWS credentials from the current session.
-   * @returns {Promise<AWSCredentials | null>} A promise that resolves with the AWS credentials or null in case of error
+   *
+   * @param {boolean} [forceRefresh=false] - Optional. If set to true, forces a refresh of the authentication session.
+   * @param {boolean} [encoded=false] - Optional. If set to true, encodes the AWS credentials using `encodeURIComponent`.
+   *
+   * @returns {Promise<AWSCredentials | null>} A promise that resolves with the AWS credentials if successful,
+   *                                           or null if the credentials are not available.
+   *                                           If an error occurs during the process, the promise is rejected with the error.
+   *
+   * The returned object has the following structure:
+   *   - accessKeyId: The AWS Access Key ID.
+   *   - secretAccessKey: The AWS Secret Access Key.
+   *   - sessionToken: The session token associated with the credentials.
+   *   - expiration: The expiration time of the credentials.
+   *
+   * Example usage:
+   * getAWSCredentials().then(credentials => {
+   *   if (credentials) {
+   *     console.log('AWS Credentials:', credentials);
+   *   } else {
+   *     console.log('No AWS credentials available.');
+   *   }
+   * }).catch(error => {
+   *   console.error('Error retrieving AWS credentials:', error);
+   * });
    */
-  const getAWSCredentials = async (encoded = false) => {
+  const getAWSCredentials = async (forceRefresh = false, encoded = false) => {
     try {
-      const session = await fetchAuthSession(); // Fetches the authentication session
+      const session = await fetchAuthSession({ forceRefresh: forceRefresh }); // Fetches the authentication session
       const credentials = session?.credentials;
       if (credentials) {
         if (encoded) {
@@ -66,11 +96,12 @@ export const useUserStore = defineStore('user', () => {
 
   /**
    * Retrieves the access token from the current session.
+   * @param {boolean} [forceRefresh=false] - Optional. If set to true, forces a refresh of the authentication session.
    * @returns {Promise<string | null>} A promise that resolves with the access token or null in case of error
    */
-  const getAccessToken = async (): Promise<string | null> => {
+  const getAccessToken = async (forceRefresh = false): Promise<string | null> => {
     try {
-      const session = await fetchAuthSession(); // Fetches the authentication session
+      const session = await fetchAuthSession({ forceRefresh: forceRefresh }); // Fetches the authentication session
       return session?.tokens?.accessToken?.toString() || null;
     } catch (error) {
       throw error;
@@ -78,12 +109,26 @@ export const useUserStore = defineStore('user', () => {
   };
 
   /**
+   * Retrieves the  client id from the current session.
+   * @returns {Promise<string | null>} A promise that resolves with the client id or null in case of error
+   */
+  const getClientId = async (): Promise<string | null> => {
+    try {
+      const session = await fetchAuthSession();
+      return session?.tokens?.accessToken.payload.client_id as string; //legalmap todo : signInDetails is deprecated
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
    * Retrieves the user login id from the current session.
+   * @param {boolean} [forceRefresh=false] - Optional. If set to true, forces a refresh of the authentication session.
    * @returns {Promise<string | null>} A promise that resolves with the access token or null in case of error
    */
-  const getLoginId = async (): Promise<string | null> => {
+  const getLoginId = async (forceRefresh = false): Promise<string | null> => {
     try {
-      const session = await fetchAuthSession(); // Fetches the authentication session
+      const session = await fetchAuthSession({ forceRefresh: forceRefresh }); // Fetches the authentication session
       return session?.tokens?.signInDetails?.loginId || null; //legalmap todo : signInDetails is deprecated
     } catch (error) {
       throw error;
@@ -133,11 +178,12 @@ export const useUserStore = defineStore('user', () => {
 
   /**
    * Retrieves the user cognito groups from the current session.
+   * @param {boolean} [forceRefresh=false] - Optional. If set to true, forces a refresh of the authentication session.
    * @returns {Promise<string | null>} A promise that resolves with the access token or null in case of error
    */
-  const getGroups = async (): Promise<[string] | []> => {
+  const getGroups = async (forceRefresh = false): Promise<[string] | []> => {
     try {
-      const session = await fetchAuthSession(); // Fetches the authentication session
+      const session = await fetchAuthSession({ forceRefresh: forceRefresh }); // Fetches the authentication session
       return (session?.tokens?.accessToken.payload['cognito:groups'] as [string]) || [];
     } catch (error) {
       throw error;
@@ -151,11 +197,10 @@ export const useUserStore = defineStore('user', () => {
    */
   const login = async (username: string, password: string) => {
     try {
-      await signIn({
+      const res = await signIn({
         username,
         password,
       });
-
       setUser();
 
       authStatus.value = 'authenticated';
@@ -256,6 +301,7 @@ export const useUserStore = defineStore('user', () => {
     setUser,
     resetUser,
     getGroups,
+    getClientId,
     getAccessToken,
     getAWSCredentials,
     getLoginId,
