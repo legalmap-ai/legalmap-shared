@@ -1,6 +1,6 @@
 import moment from 'moment';
 import crypto from 'crypto-js';
-import { AWSCredentials } from '../stores/StoreUser';
+import { AWSCredentials } from '../stores/store-auth';
 
 const API_BASE = 'https://';
 

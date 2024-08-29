@@ -34,7 +34,7 @@ if (process.env.DEV) {
 }
 
 // Define Pinia store for user management
-export const useUserStore = defineStore('user', () => {
+export const useAuthStore = defineStore('user', () => {
   const user = ref<null | GetCurrentUserOutput>(null); // Stores the current user
   const authStatus = ref<'authenticated' | 'unauthenticated'>('unauthenticated'); // Authentication status
   const router = useRouter(); // Router for navigation

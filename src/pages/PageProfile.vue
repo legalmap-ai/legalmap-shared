@@ -196,7 +196,7 @@
 
 <script lang="ts">
 import { QueryError } from '../utils/api.utils';
-import { useUserStore } from '../stores/StoreUser';
+import { useAuthStore } from '../stores/store-auth';
 import { defineComponent, onMounted, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
 
@@ -204,7 +204,7 @@ export default defineComponent({
   name: 'LegalmapPages',
   props: {},
   setup() {
-    const userStore = useUserStore();
+    const authStore = useAuthStore();
     const error_message = ref<string | null>(null);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -219,11 +219,11 @@ export default defineComponent({
 
     const getUserState = async () => {
       try {
-        access_token.value = await userStore.getAccessToken();
-        login_id.value = await userStore.getLoginId();
-        auth_time.value = await userStore.getAuthTime();
-        auth_time_date.value = await userStore.getAuthTimeDate();
-        user_groups.value = await userStore.getGroups();
+        access_token.value = await authStore.getAccessToken();
+        login_id.value = await authStore.getLoginId();
+        auth_time.value = await authStore.getAuthTime();
+        auth_time_date.value = await authStore.getAuthTimeDate();
+        user_groups.value = await authStore.getGroups();
       } catch (error) {
         error_message.value = translateError(error as QueryError);
         access_token.value = null;
@@ -232,7 +232,7 @@ export default defineComponent({
 
     const logOut = async () => {
       try {
-        const res = await userStore.logOut();
+        const res = await authStore.logOut();
         access_token.value = res;
       } catch (error) {
         access_token.value = null;
@@ -271,7 +271,7 @@ export default defineComponent({
       auth_time,
       auth_time_date,
       logOut,
-      userStore,
+      authStore,
       user_details,
       password_dict,
     };

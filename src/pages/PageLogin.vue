@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useUserStore } from '../stores/StoreUser';
+import { useAuthStore } from '../stores/store-auth';
 import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
 import BaseButton from '../components/BaseButton.vue';
@@ -42,13 +42,13 @@ import BaseButton from '../components/BaseButton.vue';
 // });
 
 const router = useRouter();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const username = ref('abedoyere@gmail.com');
 const password = ref('Arnaud_12345');
-const isAuthenticated = userStore.isAuthenticated;
+const isAuthenticated = authStore.isAuthenticated;
 
 const handleSubmit = async () => {
-  await userStore.login(username.value, password.value);
+  await authStore.login(username.value, password.value);
 };
 
 if (isAuthenticated) {

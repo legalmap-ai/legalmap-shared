@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { QueryError } from '../utils/api.utils';
 import { getApiEnpdpoint, getApiSignedTokenRequest } from '../utils/api.utils';
-import { AWSCredentials, useUserStore } from '../stores/StoreUser';
+import { AWSCredentials, useAuthStore } from '../stores/store-auth';
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 
 /**
  * Fetches the groups associated with the current user.
@@ -14,7 +14,7 @@ const userStore = useUserStore();
 export async function getUserGroups() {
   // Retrieve AWS credentials from the user store, ensuring they're up-to-date
   //Added support of force refresh token in case user have been removed from a group and update auth access
-  const awsCredentials = (await userStore.getAWSCredentials(true, false)) as AWSCredentials;
+  const awsCredentials = (await authStore.getAWSCredentials(true, false)) as AWSCredentials;
 
   // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
   const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
@@ -50,7 +50,7 @@ export async function getUserGroups() {
 export const generate = async () => {
   try {
     // Retrieve the access token from the user store
-    const access_token = await userStore.getAccessToken();
+    const access_token = await authStore.getAccessToken();
 
     // Make a GET request to the specific API endpoint, using the access token for authorization
     const response = await axios.get(`${getApiEnpdpoint()}/todo_here_generate_path`, {
