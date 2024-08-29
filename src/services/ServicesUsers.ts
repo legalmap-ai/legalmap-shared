@@ -13,7 +13,8 @@ const userStore = useUserStore();
  */
 export async function getUserGroups() {
   // Retrieve AWS credentials from the user store, ensuring they're up-to-date
-  const awsCredentials = (await userStore.getAWSCredentials(false)) as AWSCredentials;
+  //Added support of force refresh token in case user have been removed from a group and update auth access
+  const awsCredentials = (await userStore.getAWSCredentials(true, false)) as AWSCredentials;
 
   // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
   const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`

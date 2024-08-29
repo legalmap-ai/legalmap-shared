@@ -197,7 +197,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const login = async (username: string, password: string) => {
     try {
-      const res = await signIn({
+      await signIn({
         username,
         password,
       });
