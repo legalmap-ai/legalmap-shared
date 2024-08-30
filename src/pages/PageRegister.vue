@@ -160,7 +160,6 @@ const handleSubmit = async () => {
 
 const handleValidate = async () => {
   try {
-    debugger;
     await confirmSignUp({
       username: username.value,
       confirmationCode: code.value,
