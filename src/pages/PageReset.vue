@@ -19,9 +19,7 @@
     </form>
     <form v-else @submit.prevent="handleReset">
       <h2>Code de vérification</h2>
-      <div class="subtitle">
-        Un code de vérification vous a été envoyé par email
-      </div>
+      <div class="subtitle">Un code de vérification vous a été envoyé par email</div>
       <q-input
         dense
         outlined
@@ -44,10 +42,7 @@
         class="input"
         label="Nouveau mot de passe"
       />
-      <BaseButton
-        style="width: 100%"
-        type="submit"
-        :disabled="!!passwordError || !password"
+      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
         >Réinitialiser</BaseButton
       >
     </form>

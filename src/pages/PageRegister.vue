@@ -76,7 +76,7 @@
         type="number"
         v-model="code"
         placeholder="Code de vérification"
-        class="input"
+        class="q-pb-md q-pt-md"
         label="Code de vérification"
       />
       <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
@@ -118,13 +118,13 @@ if (process.env.DEV) {
 
 const router = useRouter();
 
-const username = ref('');
-const given_name = ref('');
-const family_name = ref('');
+const username = ref('abedoyere@gmail.com');
+const given_name = ref('Arnaud');
+const family_name = ref('de La Bédoyère');
 
 const code = ref('');
-const password = ref('');
-const password2 = ref('');
+const password = ref('Arnaud_12345');
+const password2 = ref('Arnaud_12345');
 const askCode = ref(false);
 
 const handleSubmit = async () => {
@@ -160,6 +160,7 @@ const handleSubmit = async () => {
 
 const handleValidate = async () => {
   try {
+    debugger;
     await confirmSignUp({
       username: username.value,
       confirmationCode: code.value,
