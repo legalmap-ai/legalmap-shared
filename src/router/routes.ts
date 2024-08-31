@@ -34,11 +34,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/services-users',
     component: () => import('layouts/MainLayout.vue'),
-    children: [
-      { path: '', component: () => import('pages/PageServicesUser.vue') },
-    ],
+    children: [{ path: '', component: () => import('pages/PageServicesUser.vue') }],
   },
-
+  {
+    path: '/socket-services-users',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageSocketServicesUser.vue') }],
+  },
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),

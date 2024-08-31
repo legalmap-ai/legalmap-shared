@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { QueryError } from '../utils/api.utils';
-import { getApiEnpdpoint, getApiSignedTokenRequest } from '../utils/api.utils';
+import { getApiEnpdpoints, getApiSignedTokenRequest } from '../utils/api.utils';
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
 
 const authStore = useAuthStore();
@@ -53,11 +53,14 @@ export const generate = async () => {
     const access_token = await authStore.getAccessToken();
 
     // Make a GET request to the specific API endpoint, using the access token for authorization
-    const response = await axios.get(`${getApiEnpdpoint()}/todo_here_generate_path`, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
+    const response = await axios.get(
+      `${getApiEnpdpoints().api_endpoint_url}/todo_here_generate_path`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
 
     // Return the generated groups data from the API response
     return response.data.groups;

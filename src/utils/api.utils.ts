@@ -3,6 +3,7 @@ import crypto from 'crypto-js';
 import { AWSCredentials } from '../stores/store-auth';
 
 const API_BASE = 'https://';
+// const API_SOCKET_BASE = 'wss://';
 
 export interface QueryError extends Error {
   response?: {
@@ -13,12 +14,28 @@ export interface QueryError extends Error {
   };
 }
 
+export interface SignedHeaders {
+  'X-Amz-Date': string;
+  Authorization: string;
+  Host: string;
+}
+
 export interface SignedQueryRequest {
   method: string;
   baseURL: string;
   url: string;
   data: string;
   headers: Record<string, string>;
+  signature?: crypto.lib.WordArray;
+}
+
+export interface SignedSocketQueryRequest {
+  method: string;
+  baseURL: string;
+  url: string;
+  data: string;
+  headers: SignedHeaders;
+  signature?: crypto.lib.WordArray;
 }
 /**
  * Retrieves the API environment string based on the environment.
@@ -42,16 +59,29 @@ const getApiEnv = () => {
  * @returns The API endpoint URL as a string. Depending on the environment,
  *          it returns the development endpoint or the master endpoint.
  */
-export const getApiEnpdpoint = () => {
+export const getApiEnpdpoints = () => {
   let api_endpoint_url = '';
+  let api_socket_connection_url = '';
+  let api_web_socket_url = '';
+
   if (process.env.DEV) {
     api_endpoint_url = '6zkggqg3qg.execute-api.eu-west-3.amazonaws.com';
+    api_socket_connection_url = 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com';
+    api_web_socket_url = 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com';
+
     console.log('Use development API endpoint');
   } else {
     api_endpoint_url = 'icf8oa4ege.execute-api.eu-west-3.amazonaws.com';
+    api_socket_connection_url = 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com';
+    api_web_socket_url = 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com';
+
     console.log('Use master API endpoint');
   }
-  return api_endpoint_url;
+  return {
+    api_endpoint_url: api_endpoint_url,
+    api_socket_connection_url: api_socket_connection_url,
+    api_web_socket_url: api_web_socket_url,
+  };
 };
 
 /**
@@ -75,7 +105,7 @@ export const getApiSignedTokenRequest = async (
   const secret_key = awsCredentials?.secretAccessKey;
   const method = 'GET';
   const service = 'execute-api';
-  const host = getApiEnpdpoint();
+  const host = getApiEnpdpoints().api_endpoint_url;
   const region = 'eu-west-3';
   const base = API_BASE;
   const content_type = 'application/json';
@@ -189,3 +219,101 @@ export const getApiSignedTokenRequest = async (
     headers: headers,
   };
 };
+
+export const getSignedHeaders = (
+  credentials: { accessKeyId: string; secretAccessKey: string; sessionToken: string | undefined },
+  region: string | crypto.lib.WordArray,
+  host: string
+) => {
+  // Task 1: Create a canonical request for Signature Version 4
+  // Arrange the contents of your request (host, action, headers, etc.) into a standard (canonical) format. The canonical request is one of the inputs used to create a string to sign.
+  const t = moment().utc();
+  const { accessKeyId, secretAccessKey } = credentials;
+
+  const amzDate = t.format('YYYYMMDDTHHmmss') + 'Z';
+  const httpRequestMethod = 'GET'; //axiosConfig.method.toUpperCase();
+  const canonicalURI = '/dev';
+  const canonicalQueryString = '';
+  //const canonicalHeaders = 'host:' + host + '\n' + 'x-amz-date:' + amzDate + '\n';
+  const canonicalHeaders = 'host:' + host + '\n';
+  //const signedHeaders = 'host;x-amz-date';
+  const signedHeaders = 'host';
+  const payload = ''; //axiosConfig.data ? JSON.stringify(axiosConfig.data) : '';
+  const hashedPayload = createHash(payload);
+
+  const canonicalRequest =
+    httpRequestMethod +
+    '\n' +
+    canonicalURI +
+    '\n' +
+    canonicalQueryString +
+    '\n' +
+    canonicalHeaders +
+    '\n' +
+    signedHeaders +
+    '\n' +
+    hashedPayload;
+  console.log('canonicalRequest');
+  console.log(canonicalRequest);
+  console.log('');
+  const hashedCanonicalRequest = createHash(canonicalRequest);
+
+  //   if you used SHA256, you will specify AWS4-HMAC-SHA256 as the signing algorithm
+
+  // Task 2: Create a string to sign for Signature Version 4
+  // Create a string to sign with the canonical request and extra information such as the algorithm, request date, credential scope, and the digest (hash) of the canonical request.
+  const algorithm = 'AWS4-HMAC-SHA256';
+  const requestDateTime = amzDate;
+  const dateStamp = t.format('YYYYMMDD'); // Date w/o time, used in credential scope
+  const service = 'execute-api';
+  const credentialScope = dateStamp + '/' + region + '/' + service + '/' + 'aws4_request';
+
+  const stringToSign =
+    algorithm + '\n' + requestDateTime + '\n' + credentialScope + '\n' + hashedCanonicalRequest;
+
+  console.log('stringToSign');
+  console.log(stringToSign);
+  // Task 3: Calculate the signature for AWS Signature Version 4
+  // Derive a signing key by performing a succession of keyed hash operations (HMAC operations) on the request date, Region, and service, with your AWS secret access key as the key for the initial hashing operation. After you derive the signing key, you then calculate the signature by performing a keyed hash operation on the string to sign. Use the derived signing key as the hash key for this operation.
+
+  const kDate = crypto.HmacSHA256(dateStamp, 'AWS4' + secretAccessKey);
+  const kRegion = crypto.HmacSHA256(region, kDate);
+  const kService = crypto.HmacSHA256(service, kRegion);
+  const kSigning = crypto.HmacSHA256('aws4_request', kService);
+  console.log('kSigning: ', crypto.enc.Hex.stringify(kSigning));
+
+  const signature = crypto.enc.Hex.stringify(crypto.HmacSHA256(stringToSign, kSigning));
+
+  // Task 4: Add the signature to the HTTP request
+  // After you calculate the signature, add it to an HTTP header or to the query string of the request.
+  const authorizationHeader =
+    algorithm +
+    ' Credential=' +
+    accessKeyId +
+    '/' +
+    credentialScope +
+    ', SignedHeaders=' +
+    signedHeaders +
+    ', Signature=' +
+    signature;
+
+  const headers = {
+    'X-Amz-Date': amzDate,
+    Authorization: authorizationHeader,
+    Host: host,
+    urlDatas: {
+      'X-Amz-Algorithm': algorithm,
+      'X-Amz-Credential': accessKeyId + '/' + credentialScope,
+      'X-Amz-Date': amzDate,
+      'X-Amz-Security-Token': encodeURIComponent(credentials.sessionToken as string),
+      'X-Amz-SignedHeaders': signedHeaders,
+      'X-Amz-Signature': signature,
+    },
+  };
+
+  return headers;
+};
+
+function createHash(input: string | crypto.lib.WordArray) {
+  return crypto.enc.Hex.stringify(crypto.SHA256(input));
+}
