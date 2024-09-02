@@ -264,7 +264,7 @@ export class RequestSigner {
     const date = this.getDate();
     const cacheKey = [this.credentials.secretAccessKey, date, this.region, this.service].join();
     let kCredentials = credentialsCache.get(cacheKey);
-
+    let kCredentials2;
     if (!kCredentials) {
       const kDate = hmac('AWS4' + this.credentials.secretAccessKey, date);
       const kDate2 = crypto.HmacSHA256(date, 'AWS4' + this.credentials.secretAccessKey);
@@ -276,7 +276,7 @@ export class RequestSigner {
       const kService2 = crypto.HmacSHA256(this.service, kRegion2);
 
       kCredentials = hmac(kService, 'aws4_request');
-      const kCredentials2 = crypto.HmacSHA256('aws4_request', kService2).toString();
+      kCredentials2 = crypto.HmacSHA256('aws4_request', kService2).toString();
 
       credentialsCache.set(cacheKey, kCredentials);
     }
