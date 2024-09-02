@@ -21,13 +21,13 @@ export async function getUserGroups() {
 
   // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
   //const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
-  const signedQyery = await getApiSignedTokenRequest('/test2', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
+  const signedQyery = await getApiSignedTokenRequest('/test', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
   console.log(signedQyery);
   // Définir la requête
   const request: Request = {
     //method: 'GET',
     host: '6zkggqg3qg.execute-api.eu-west-3.amazonaws.com',
-    path: '/dev/test2',
+    path: '/dev/test',
     signQuery: false,
     headers: {
       'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export async function getUserGroups() {
     const response2 = await axios({
       method: signedRequest.method,
       baseURL: 'https://' + signedRequest.host,
-      url: '/dev/test2',
+      url: '/dev/test',
       data: '',
       headers: signedRequest.headers,
     });
