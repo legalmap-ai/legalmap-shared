@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { QueryError } from '../utils/api.utils';
 import { getApiEnpdpoints, getApiSignedTokenRequest } from '../utils/api.utils';
+//import { getApiEnpdpoints } from '../utils/api.utils';
+
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
+import { RequestSigner, Request, Credentials } from '../utils/aws-signer.utils';
 
 const authStore = useAuthStore();
 
@@ -17,10 +20,47 @@ export async function getUserGroups() {
   const awsCredentials = (await authStore.getAWSCredentials(true, false)) as AWSCredentials;
 
   // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
-  const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
+  //const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
+  const signedQyery = await getApiSignedTokenRequest('/test2', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
+  console.log(signedQyery);
+  // Définir la requête
+  const request: Request = {
+    //method: 'GET',
+    host: '6zkggqg3qg.execute-api.eu-west-3.amazonaws.com',
+    path: '/dev/test2',
+    signQuery: false,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    service: 'execute-api',
+    region: 'eu-west-3',
+  };
 
+  // Définir les informations d'identification
+  const credentials: Credentials = {
+    accessKeyId: awsCredentials.accessKeyId,
+    secretAccessKey: awsCredentials.secretAccessKey,
+    sessionToken: awsCredentials.sessionToken,
+  };
+
+  const requestSigner = new RequestSigner(request, credentials);
+  const signedRequest = requestSigner.sign();
+  console.log(signedRequest);
+
+  console.log('');
+  console.log('canonicalString');
+  console.log(requestSigner.canonicalString());
+
+  console.log('');
+  console.log('stringtosign');
+  console.log(requestSigner.stringToSign());
+
+  console.log('');
+  console.log('signature');
+  console.log(requestSigner.signature());
+  debugger;
   try {
-    // Make an API call using the signed request details
+    //Make an API call using the signed request details
     const response = await axios({
       method: signedQyery.method,
       baseURL: signedQyery.baseURL,
@@ -28,7 +68,15 @@ export async function getUserGroups() {
       data: signedQyery.data,
       headers: signedQyery.headers,
     });
-
+    debugger;
+    const response2 = await axios({
+      method: signedRequest.method,
+      baseURL: 'https://' + signedRequest.host,
+      url: '/dev/test2',
+      data: '',
+      headers: signedRequest.headers,
+    });
+    console.log(response2);
     // Return the list of groups from the API response
     return response.data.groups;
   } catch (error) {
