@@ -33,9 +33,7 @@ export default defineComponent({
       try {
         error_message.value = null; // Reset error before fetch
         socketResponse.value = await connect_socket_api_gateway();
-        debugger;
       } catch (error) {
-        debugger;
         const translated_error = translateError(error as QueryError);
         console.log(translated_error);
         const errorDetails =

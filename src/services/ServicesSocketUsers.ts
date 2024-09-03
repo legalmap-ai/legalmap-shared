@@ -54,12 +54,10 @@ export async function connect_socket_api_gateway() {
     const socket = new WebSocket('wss://' + signedRequest.host + signedRequest.path);
     //const socket = new WebSocket('wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/');
     socket.onopen = function (this: WebSocket, ev: Event) {
-      debugger;
       console.log('CONNECTED');
       console.log(ev);
     };
     socket.onerror = function (this: WebSocket, ev: Event) {
-      debugger;
       console.log('ERROR ');
       console.log(ev);
     };

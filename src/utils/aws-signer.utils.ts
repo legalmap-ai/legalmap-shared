@@ -216,7 +216,7 @@ export class RequestSigner {
         else headers['X-Amz-Date'] = this.getDateTime();
       }
 
-      delete headers.Authorization;
+      //delete headers.Authorization;
       //delete headers.authorization;
     }
   }
@@ -285,8 +285,9 @@ export class RequestSigner {
 
     const signed1 = crypto.HmacSHA256(kCredentials, this.stringToSign());
     const signed2 = crypto.HmacSHA256(kCredentials2, this.stringToSign());
-    debugger;
-    return hmac(kCredentials, this.stringToSign(), crypto.enc.Hex);
+
+    //return hmac(kCredentials, this.stringToSign(), crypto.enc.Hex);
+    return crypto.HmacSHA256(kCredentials2, this.stringToSign());
   }
 
   // function getSignatureKey(
@@ -323,7 +324,6 @@ export class RequestSigner {
     const decodeSlashesInPath = this.service === 's3';
     const firstValOnly = this.service === 's3';
     let bodyHash: string;
-
     if (this.service === 's3' && this.request.signQuery) {
       bodyHash = 'UNSIGNED-PAYLOAD';
     } else if (this.isCodeCommitGit) {

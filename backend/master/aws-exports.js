@@ -6,14 +6,14 @@ const awsmobile = {
     "aws_cloud_logic_custom": [
         {
             "name": "legalmapApiService",
-            "endpoint": "https://icf8oa4ege.execute-api.eu-west-3.amazonaws.com/master",
+            "endpoint": "https://fzbyhtflfl.execute-api.eu-west-3.amazonaws.com/devarnaud",
             "region": "eu-west-3"
         }
     ],
-    "aws_cognito_identity_pool_id": "eu-west-3:75eaea34-70b1-482e-a7f6-ba15979dd8dd",
+    "aws_cognito_identity_pool_id": "eu-west-3:e1010a2e-17cb-41cd-b6f8-799f7f7cf54f",
     "aws_cognito_region": "eu-west-3",
-    "aws_user_pools_id": "eu-west-3_K4foElTri",
-    "aws_user_pools_web_client_id": "1hbepgpnq44uoe296cjefu0iat",
+    "aws_user_pools_id": "eu-west-3_SLL7jPw53",
+    "aws_user_pools_web_client_id": "4ehc3h3074mpctov0jhb4ot2q8",
     "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
