@@ -66,14 +66,14 @@ export const getApiEnpdpoint = () => {
 export const getApiSignedTokenRequest = async (
   path: string,
   awsCredentials: AWSCredentials,
-  request_parameters: string
+  request_parameters: string,
+  method: string = 'GET'
 ): Promise<SignedQueryRequest> => {
   const canonical_uri = getApiEnv() + path;
 
   // Extract the necessary AWS credentials
   const access_key = awsCredentials?.accessKeyId;
   const secret_key = awsCredentials?.secretAccessKey;
-  const method = 'GET';
   const service = 'execute-api';
   const host = getApiEnpdpoint();
   const region = 'eu-west-3';
@@ -108,10 +108,12 @@ export const getApiSignedTokenRequest = async (
   const date_stamp = moment().utc().format('yyyyMMDD');
 
   // Step 3: Create the canonical query string (empty in this case)
-  const canonical_querystring = '';
+  const canonical_querystring = request_parameters.replace('?', '');
 
   // Step 6: Create the payload hash using the SHA256 algorithm
   const payload_hash = crypto.SHA256(request_parameters);
+
+  const payload_hash_empty = crypto.SHA256('');
 
   // Step 4: Create the canonical headers, including the payload hash and timestamps
   const canonical_headers =
@@ -140,7 +142,11 @@ export const getApiSignedTokenRequest = async (
     '\n' +
     signed_headers +
     '\n' +
-    payload_hash;
+    payload_hash_empty;
+
+  console.log('');
+  console.log('canonical_request');
+  console.log(canonical_request);
 
   // Step 2: Create the string to sign, which includes the algorithm, timestamp, credential scope, and hashed canonical request
   const algorithm = 'AWS4-HMAC-SHA256';
@@ -150,6 +156,10 @@ export const getApiSignedTokenRequest = async (
 
   // Step 3: Calculate the signature using the signing key and the string to sign
   const signing_key = getSignatureKey(secret_key, date_stamp, region, service);
+
+  console.log('');
+  console.log('string_to_sign');
+  console.log(string_to_sign);
 
   // Sign the string_to_sign using the signing key
   const signature = crypto.HmacSHA256(string_to_sign, signing_key);
