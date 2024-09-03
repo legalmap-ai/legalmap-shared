@@ -118,13 +118,13 @@ if (process.env.DEV) {
 
 const router = useRouter();
 
-const username = ref('abedoyere@gmail.com');
-const given_name = ref('Arnaud');
-const family_name = ref('de La Bédoyère');
+const username = ref('matteokocken@gmail.com');
+const given_name = ref('Matteo');
+const family_name = ref('Kocken');
 
 const code = ref('');
-const password = ref('Arnaud_12345');
-const password2 = ref('Arnaud_12345');
+const password = ref('Test123@');
+const password2 = ref('Test123@');
 const askCode = ref(false);
 
 const handleSubmit = async () => {
