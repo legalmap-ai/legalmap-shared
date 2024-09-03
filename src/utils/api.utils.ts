@@ -60,6 +60,7 @@ export const getApiEnpdpoint = () => {
  * @param path - The API path that the request will target.
  * @param awsCredentials - AWS credentials including access key, secret key, and session token.
  * @param request_parameters - Parameters to be included in the request payload.
+ * @param request_payload - The payload to be included in the request.
  *
  * @returns A promise that resolves to a SignedQueryRequest object containing the signed request details.
  */
@@ -67,6 +68,7 @@ export const getApiSignedTokenRequest = async (
   path: string,
   awsCredentials: AWSCredentials,
   request_parameters: string,
+  request_payload: string,
   method: string = 'GET'
 ): Promise<SignedQueryRequest> => {
   const canonical_uri = getApiEnv() + path;
@@ -111,9 +113,7 @@ export const getApiSignedTokenRequest = async (
   const canonical_querystring = request_parameters.replace('?', '');
 
   // Step 6: Create the payload hash using the SHA256 algorithm
-  const payload_hash = crypto.SHA256(request_parameters);
-
-  const payload_hash_empty = crypto.SHA256('');
+  const payload_hash = crypto.SHA256(request_payload);
 
   // Step 4: Create the canonical headers, including the payload hash and timestamps
   const canonical_headers =
@@ -142,7 +142,7 @@ export const getApiSignedTokenRequest = async (
     '\n' +
     signed_headers +
     '\n' +
-    payload_hash_empty;
+    payload_hash;
 
   console.log('');
   console.log('canonical_request');
