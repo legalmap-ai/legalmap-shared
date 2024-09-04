@@ -18,7 +18,7 @@ export async function getUserGroups() {
   const awsCredentials = (await authStore.getAWSCredentials(true, false)) as AWSCredentials;
 
   // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
-  const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, ''); // Example parameter: `{"date":"today","content":"hello"}`
+  const signedQyery = await getApiSignedTokenRequest('/me/groups', awsCredentials, '', ''); // Example parameter: `{"date":"today","content":"hello"}`
 
   try {
     // Make an API call using the signed request details

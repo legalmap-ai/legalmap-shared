@@ -57,53 +57,32 @@
 
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input color="black" dense v-model="user_details.user_name" label="User Name" />
+                  <q-input color="black" dense v-model="profile.email" label="Email Address" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input color="black" dense v-model="user_details.email" label="Email Address" />
+                  <q-input color="black" dense v-model="profile.given_name" label="First Name" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.first_name"
-                    label="First Name"
-                  />
+                  <q-input color="black" dense v-model="profile.family_name" label="Last Name" />
+                </q-item-section>
+              </q-item>
+              <!--<q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <q-item-section>
+                  <q-input color="black" autogrow dense v-model="profile.address" label="Address" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input color="black" dense v-model="user_details.last_name" label="Last Name" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input
-                    color="black"
-                    autogrow
-                    dense
-                    v-model="user_details.address"
-                    label="Address"
-                  />
+                  <q-input color="black" dense v-model="profile.city" label="City" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                 <q-item-section>
-                  <q-input color="black" dense v-model="user_details.city" label="City" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input
-                    color="black"
-                    dense
-                    v-model="user_details.post_code"
-                    label="Postal Code"
-                  />
+                  <q-input color="black" dense v-model="profile.post_code" label="Postal Code" />
                 </q-item-section>
               </q-item>
               <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -112,15 +91,18 @@
                     color="black"
                     type="textarea"
                     dense
-                    v-model="user_details.about"
+                    v-model="profile.about"
                     label="About"
                   />
                 </q-item-section>
               </q-item>
+              -->
             </q-list>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn class="text-capitalize bg-info text-white">Update User Info</q-btn>
+            <q-btn class="text-capitalize bg-info text-white" @click="handleUpdateProfile"
+              >Update User Info</q-btn
+            >
           </q-card-actions>
         </q-card>
       </div>
@@ -197,8 +179,10 @@
 <script lang="ts">
 import { QueryError } from '../utils/api.utils';
 import { useAuthStore } from '../stores/store-auth';
-import { defineComponent, onMounted, ref } from 'vue';
+import { Ref, defineComponent, onMounted, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
+import { updateProfile } from '../services/ServicesUsers';
+import { Profile } from 'src/types/profile';
 
 export default defineComponent({
   name: 'LegalmapPages',
@@ -243,16 +227,20 @@ export default defineComponent({
     //   console.log(await UsersService.getAuthenticatedUser());
     // };
 
-    const user_details = ref({
-      user_name: '',
-      email: '',
-      first_name: '',
-      last_name: '',
-      address: '',
-      city: '',
-      post_code: '',
-      about: '',
-    });
+    const handleUpdateProfile = async () => {
+      try {
+        const res = await updateProfile(profile.value);
+        console.log(res);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const profile = ref({
+      email: 'matteokocken@gmail.com',
+      given_name: 'Matteo',
+      family_name: 'Kocken',
+    }) as Ref<Profile>;
 
     const password_dict = ref({
       current_password: '',
@@ -272,8 +260,9 @@ export default defineComponent({
       auth_time_date,
       logOut,
       authStore,
-      user_details,
+      profile,
       password_dict,
+      handleUpdateProfile,
     };
   },
 });
