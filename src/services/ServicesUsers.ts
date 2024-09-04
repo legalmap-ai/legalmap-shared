@@ -2,7 +2,6 @@ import axios from 'axios';
 import { QueryError } from '../utils/api.utils';
 import { getApiSignedTokenRequest } from '../utils/api.utils';
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
-import { Profile } from 'src/types/profile';
 
 export interface QueryTest {
   index: number;
@@ -70,41 +69,6 @@ export const generate = async () => {
     return response.data.groups;
   } catch (error) {
     // Rethrow the error if the API request fails
-    throw error;
-  }
-};
-
-export const updateProfile = async (profile: Profile) => {
-  // Retrieve AWS credentials from the user store, ensuring they're up-to-date
-  //Added support of force refresh token in case user have been removed from a group and update auth access
-  const awsCredentials = (await authStore.getAWSCredentials(true, false)) as AWSCredentials;
-  const parameters = '';
-  // Generate a signed API request to the endpoint '/dev/me/groups' using the AWS credentials
-  const signedQyery = await getApiSignedTokenRequest(
-    '/me/profile',
-    awsCredentials,
-    parameters,
-    JSON.stringify(profile),
-    'PUT'
-  ); // Example parameter: `{"date":"today","content":"hello"}`
-  try {
-    // Make an API call using the signed request details
-    const response = await axios({
-      method: signedQyery.method,
-      baseURL: signedQyery.baseURL,
-      url: signedQyery.url,
-      data: profile,
-      headers: signedQyery.headers,
-    });
-
-    // Return the list of groups from the API response
-    return response.data.groups;
-  } catch (error) {
-    // Log an error message if the API call fails and rethrow the error
-    console.error(
-      'API call failed',
-      (error as QueryError).response?.data || (error as QueryError).message || error
-    );
     throw error;
   }
 };

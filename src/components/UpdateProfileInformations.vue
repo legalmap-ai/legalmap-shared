@@ -65,7 +65,7 @@
 <script lang="ts">
 import { AxiosError } from 'axios';
 import { Notify } from 'quasar';
-import { updateProfile } from 'src/services/ServicesUsers';
+import { invokeApi } from 'src/services/ServicesUsers';
 import { Profile } from 'src/types/profile';
 import { QueryError } from 'src/utils/api.utils';
 import { translateError } from 'src/utils/errors.utils';
@@ -93,9 +93,17 @@ export default defineComponent({
 
     const handleUpdateProfile = async () => {
       try {
+        console.log(JSON.stringify(localProfile.value));
         error.value = null;
         loading.value = true;
-        await updateProfile(localProfile.value);
+        await invokeApi({
+          index: 4,
+          method: 'PUT',
+          path: '/me/profile',
+          parameters: {
+            ...localProfile.value,
+          },
+        });
         Notify.create({
           message: 'Votre profil a été mis à jour',
           color: 'positive',
