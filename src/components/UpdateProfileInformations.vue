@@ -7,23 +7,6 @@
       </q-card-section>
       <q-card-section class="q-pa-sm">
         <q-list class="row">
-          <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <q-item-section side>
-              <q-avatar size="100px">
-                <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
-              </q-avatar>
-            </q-item-section>
-            <q-item-section>
-              <q-btn
-                label="Add Photo"
-                class="text-capitalize"
-                rounded
-                color="info"
-                style="max-width: 120px"
-              ></q-btn>
-            </q-item-section>
-          </q-item>
-
           <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
             <q-item-section>
               <q-input color="black" dense v-model="localProfile.email" label="Email Address" />
