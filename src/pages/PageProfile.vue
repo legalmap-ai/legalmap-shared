@@ -24,88 +24,7 @@
       Erreur: {{ error_message }}
     </q-card-section>
     <div class="row q-col-gutter-sm">
-      <div class="col-lg-12 col-md-12 col-xs-12 col-sm-12">
-        <q-card>
-          <!-- <BaseButton @click="handleSubscribe"
-            >Souscrire à un abonnement</BaseButton
-          > -->
-        </q-card>
-
-        <q-card class="card-bg no-shadow" bordered>
-          <q-card-section class="text-h6">
-            <div class="text-h6">Mon profil</div>
-            <div class="text-subtitle2">Compléter mon profil</div>
-          </q-card-section>
-          <q-card-section class="q-pa-sm">
-            <q-list class="row">
-              <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section side>
-                  <q-avatar size="100px">
-                    <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
-                  </q-avatar>
-                </q-item-section>
-                <q-item-section>
-                  <q-btn
-                    label="Add Photo"
-                    class="text-capitalize"
-                    rounded
-                    color="info"
-                    style="max-width: 120px"
-                  ></q-btn>
-                </q-item-section>
-              </q-item>
-
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.email" label="Email Address" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.given_name" label="First Name" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.family_name" label="Last Name" />
-                </q-item-section>
-              </q-item>
-              <!--<q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" autogrow dense v-model="profile.address" label="Address" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.city" label="City" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.post_code" label="Postal Code" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input
-                    color="black"
-                    type="textarea"
-                    dense
-                    v-model="profile.about"
-                    label="About"
-                  />
-                </q-item-section>
-              </q-item>
-              -->
-            </q-list>
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn class="text-capitalize bg-info text-white" @click="handleUpdateProfile"
-              >Update User Info</q-btn
-            >
-          </q-card-actions>
-        </q-card>
-      </div>
+      <UpdateProfileInformations :profile="profile" />
 
       <div class="col-lg-12 col-md-12 col-xs-12 col-sm-12">
         <q-card class="card-bg no-shadow" bordered>
@@ -181,15 +100,19 @@ import { QueryError } from '../utils/api.utils';
 import { useAuthStore } from '../stores/store-auth';
 import { Ref, defineComponent, onMounted, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
-import { updateProfile } from '../services/ServicesUsers';
 import { Profile } from 'src/types/profile';
+import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
 
 export default defineComponent({
+  components: {
+    UpdateProfileInformations,
+  },
   name: 'LegalmapPages',
   props: {},
   setup() {
     const authStore = useAuthStore();
     const error_message = ref<string | null>(null);
+    const error_update_message = ref<string | null>(null);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const access_token = ref<any>(null);
@@ -227,15 +150,6 @@ export default defineComponent({
     //   console.log(await UsersService.getAuthenticatedUser());
     // };
 
-    const handleUpdateProfile = async () => {
-      try {
-        const res = await updateProfile(profile.value);
-        console.log(res);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     const profile = ref({
       email: 'matteokocken@gmail.com',
       given_name: 'Matteo',
@@ -253,6 +167,7 @@ export default defineComponent({
     // };
     return {
       error_message,
+      error_update_message,
       access_token,
       user_groups,
       login_id,
@@ -262,7 +177,6 @@ export default defineComponent({
       authStore,
       profile,
       password_dict,
-      handleUpdateProfile,
     };
   },
 });
