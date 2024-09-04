@@ -2,18 +2,9 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title>
-          LegalMap Shared Pages & Components Library
-        </q-toolbar-title>
+        <q-toolbar-title> LegalMap Shared Pages & Components Library </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
@@ -23,11 +14,7 @@
       <q-list>
         <q-item-label header> Pages & Components </q-item-label>
 
-        <LegalmapPages
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <LegalmapPages v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
@@ -78,9 +65,15 @@ const linksList: LegalmapPagesProps[] = [
   },
   {
     title: 'Page Services Users',
-    caption: 'LegalMap API users services',
+    caption: 'LegalMap API users Services',
     icon: 'http',
     link: 'services-users',
+  },
+  {
+    title: 'Page Socket Services Users',
+    caption: 'LegalMap API users Socket Services',
+    icon: 'http',
+    link: 'socket-services-users',
   },
 ];
 
