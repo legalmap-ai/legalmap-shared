@@ -37,6 +37,11 @@ export interface SignedSocketQueryRequest {
   signature?: crypto.lib.WordArray;
 }
 
+export interface SignedQueryRequestOptions {
+  host?: string;
+  region?: string;
+  protocol?: string;
+}
 /**
  * Retrieves the AWS project region based on the current environment.
  *
@@ -107,19 +112,19 @@ export const getApiSignedTokenRequest = async (
   path: string,
   awsCredentials: AWSCredentials,
   user_request_parameters: string | unknown,
-  useQueryString: boolean = false
+  useQueryString: boolean = false,
+  options?: SignedQueryRequestOptions
 ): Promise<SignedQueryRequest> => {
-  const canonical_uri = '/' + getApiConfig().environment + path;
-
   // Extract the necessary AWS credentials
   const access_key = awsCredentials?.accessKeyId;
   const secret_key = awsCredentials?.secretAccessKey;
   const service = 'execute-api';
-  const host = getApiConfig().endpoint;
-  const region = getRegion();
-  const base = getApiConfig().protocol + '://';
-  const content_type = 'application/json';
+  const host = options?.host ? options?.host : getApiConfig().endpoint;
+  const region = options?.region ? options?.region : getRegion();
+  const base = options?.protocol ? options?.protocol + '://' : getApiConfig().protocol + '://';
 
+  const canonical_uri = path; //'/' + getApiConfig().environment + path;
+  const content_type = 'application/json';
   /**
    * Generates the signature key used to sign the request.
    *
@@ -164,8 +169,12 @@ export const getApiSignedTokenRequest = async (
         `X-Amz-Credential=${encodeURIComponent(access_key + '/' + credential_scope)}`,
         `X-Amz-Date=${amz_date}`,
         'X-Amz-Expires=60', // Expiration en secondes
-        'X-Amz-SignedHeaders=host' + '&' + user_sorted_params.toString(),
       ];
+      if (user_sorted_params.size > 0) {
+        params.push('X-Amz-SignedHeaders=host' + '&' + user_sorted_params.toString());
+      } else {
+        params.push('X-Amz-SignedHeaders=host');
+      }
 
       if (awsCredentials?.sessionToken) {
         params.push(`X-Amz-Security-Token=${encodeURIComponent(awsCredentials.sessionToken)}`);

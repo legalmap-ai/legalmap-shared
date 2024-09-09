@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { QueryError } from '../utils/api.utils';
+import { getApiConfig, QueryError } from '../utils/api.utils';
 import { getApiSignedTokenRequest } from '../utils/api.utils';
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
 
@@ -13,6 +13,33 @@ export interface QueryTest {
 }
 const authStore = useAuthStore();
 
+export async function invokeSocketApi() {
+  const awsCredentials = (await authStore.getAWSCredentials(false, false)) as AWSCredentials;
+
+  const signedQuery = await getApiSignedTokenRequest('GET', '/dev', awsCredentials, '', true, {
+    host: 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com',
+    region: 'eu-west-3',
+    protocol: 'wss',
+  });
+  //wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/
+  //signedQuery.url = signedQuery.url.replace('/devarnaud/dev', '/dev');
+
+  debugger;
+
+  const socket = new WebSocket(signedQuery.baseURL + signedQuery.url);
+  //const socket = new WebSocket('wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/');
+  socket.onopen = function (this: WebSocket, ev: Event) {
+    console.log('CONNECTED');
+    console.log(ev);
+  };
+  socket.onerror = function (this: WebSocket, ev: Event) {
+    console.log('ERROR ');
+    console.log(ev);
+  };
+
+  return [];
+}
+
 /**
  * Invokes an API request with the specified query details.
  *
@@ -25,10 +52,9 @@ export async function invokeApi(selected_query: QueryTest) {
     selected_query.forceRefreshToken,
     false
   )) as AWSCredentials;
-
-  const signedQyery = await getApiSignedTokenRequest(
+  const signedQuery = await getApiSignedTokenRequest(
     selected_query.method,
-    selected_query.path,
+    '/' + getApiConfig().environment + selected_query.path,
     awsCredentials,
     selected_query.parameters,
     selected_query.useQueryString
@@ -38,19 +64,19 @@ export async function invokeApi(selected_query: QueryTest) {
     let response;
     if (selected_query.useQueryString == true) {
       response = await axios({
-        method: signedQyery.method,
-        baseURL: signedQyery.baseURL,
-        url: signedQyery.url,
-        //data: signedQyery.data, //We don't need to send data if useQueryString is true
-        //headers: signedQyery.headers, //We don't need to send headers if useQueryString is true
+        method: signedQuery.method,
+        baseURL: signedQuery.baseURL,
+        url: signedQuery.url,
+        //data: signedQuery.data, //We don't need to send data if useQueryString is true
+        //headers: signedQuery.headers, //We don't need to send headers if useQueryString is true
       });
     } else {
       response = await axios({
-        method: signedQyery.method,
-        baseURL: signedQyery.baseURL,
-        url: signedQyery.url,
-        data: signedQyery.data,
-        headers: signedQyery.headers,
+        method: signedQuery.method,
+        baseURL: signedQuery.baseURL,
+        url: signedQuery.url,
+        data: signedQuery.data,
+        headers: signedQuery.headers,
       });
     }
 

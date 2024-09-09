@@ -28,8 +28,18 @@
         Erreur: {{ error_message }}
       </q-card-section>
 
-      <q-card-section v-if="groups.length">
-        <div v-for="group in groups" :key="group" class="q-mb-sm">
+      <q-card-section v-if="messageApi.length">
+        <div v-for="group in messageApi" :key="group" class="q-mb-sm">
+          {{ group }}
+        </div>
+      </q-card-section>
+
+      <q-card-section>
+        <q-btn label="Tester la requête Socket" @click="testSocketApi" color="primary" />
+      </q-card-section>
+
+      <q-card-section v-if="messageSocketApi.length">
+        <div v-for="group in messageSocketApi" :key="group" class="q-mb-sm">
           {{ group }}
         </div>
       </q-card-section>
@@ -39,14 +49,16 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { invokeApi, QueryTest } from '../services/ServicesUsers';
+import { invokeApi, invokeSocketApi, QueryTest } from '../services/ServicesUsers';
 import { QueryError } from '../utils/api.utils';
 import { translateError } from '../utils/errors.utils';
 
 export default defineComponent({
   name: 'PageServicesUser',
   setup() {
-    const groups = ref<string[]>([]);
+    const messageApi = ref<string[]>([]);
+    const messageSocketApi = ref<string[]>([]);
+
     const error_message = ref<string | null>(null);
     const query_tests = ref<QueryTest[]>([
       {
@@ -122,7 +134,22 @@ export default defineComponent({
     const testApi = async () => {
       try {
         error_message.value = null; // Reset error before fetch
-        groups.value = await invokeApi(ref_selected_query.value);
+        messageApi.value = await invokeApi(ref_selected_query.value);
+      } catch (error) {
+        const translated_error = translateError(error as QueryError);
+        console.log(translated_error);
+        const errorDetails =
+          (error as QueryError).response?.data || (error as QueryError).message || error;
+        error_message.value =
+          'API call failed: ' +
+          (typeof errorDetails === 'object' ? JSON.stringify(errorDetails, null, 2) : errorDetails);
+      }
+    };
+
+    const testSocketApi = async () => {
+      try {
+        error_message.value = null; // Reset error before fetch
+        messageSocketApi.value = await invokeSocketApi();
       } catch (error) {
         const translated_error = translateError(error as QueryError);
         console.log(translated_error);
@@ -135,11 +162,13 @@ export default defineComponent({
     };
 
     return {
-      groups,
+      messageApi,
+      messageSocketApi,
       error_message,
       query_tests,
       ref_selected_query,
       testApi,
+      testSocketApi,
     };
   },
 });
