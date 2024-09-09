@@ -11,7 +11,8 @@
               <q-item-section @click="ref_selected_query = query">
                 <q-item-label
                   >Path: {{ query.path }} - Méthode : {{ query.method }} - Paramètres:
-                  {{ query.parameters }}</q-item-label
+                  {{ query.parameters }} - UQS : {{ query.useQueryString }} - Refresh
+                  {{ query.forceRefreshToken }}</q-item-label
                 >
               </q-item-section>
             </q-item>
@@ -53,39 +54,67 @@ export default defineComponent({
         method: 'GET',
         path: '/test',
         parameters: '?methode=GET&name=arnaud&age=43',
+        useQueryString: true,
+        forceRefreshToken: false,
       },
-
       {
         index: 1,
-        method: 'POST',
+        method: 'GET',
         path: '/test',
-        parameters: 'je suis un simple message envoyé via POST',
+        parameters: '?methode=GET&name=arnaud&age=43',
+        useQueryString: true,
+        forceRefreshToken: true,
       },
-
       {
         index: 2,
-        method: 'POST',
+        method: 'GET',
         path: '/test',
-        parameters: { methode: 'POST', name: 'arnaud', age: 43 },
+        parameters: '?methode=GET&name=arnaud&age=43',
+        useQueryString: false,
+        forceRefreshToken: false,
       },
 
       {
         index: 3,
+        method: 'POST',
+        path: '/test',
+        parameters: 'je suis un simple message envoyé via POST',
+        useQueryString: false,
+        forceRefreshToken: false,
+      },
+
+      {
+        index: 4,
+        method: 'POST',
+        path: '/test',
+        parameters: { methode: 'POST', name: 'arnaud', age: 43 },
+        useQueryString: false,
+        forceRefreshToken: false,
+      },
+
+      {
+        index: 5,
         method: 'PUT',
         path: '/test',
         parameters: { methode: 'PUT', name: 'arnaud', age: 43 },
+        useQueryString: false,
+        forceRefreshToken: false,
       },
       {
-        index: 4,
+        index: 6,
         method: 'DELETE',
         path: '/test',
         parameters: { methode: 'DELETE', name: 'arnaud', age: 43 },
+        useQueryString: false,
+        forceRefreshToken: false,
       },
       {
-        index: 5,
+        index: 7,
         method: 'error',
         path: '/test',
         parameters: { methode: 'DELETE', name: 'arnaud', age: 43 },
+        useQueryString: false,
+        forceRefreshToken: false,
       },
     ]);
 

@@ -93,17 +93,21 @@ export const getApiConfig = (): { protocol: string; endpoint: string; environmen
 /**
  * Generates a signed request for the AWS API.
  *
- * @param path - The API path that the request will target.
- * @param awsCredentials - AWS credentials including access key, secret key, and session token.
- * @param request_parameters - Parameters to be included in the request payload.
+ * @param method - The HTTP method to be used for the API request (e.g., GET, POST).
+ * @param path - The specific API path that the request will target.
+ * @param awsCredentials - AWS credentials, including access key, secret key, and optional session token.
+ * @param user_request_parameters - Parameters to be included in the request payload or query string.
+ * @param useQueryString - Boolean flag to indicate whether to include request parameters in the query string (true for GET requests).
  *
- * @returns A promise that resolves to a SignedQueryRequest object containing the signed request details.
+ * @returns A promise that resolves to a SignedQueryRequest object containing the signed request details such as headers, method, and URL.
  */
+
 export const getApiSignedTokenRequest = async (
   method: string,
   path: string,
   awsCredentials: AWSCredentials,
-  request_parameters: string | unknown
+  user_request_parameters: string | unknown,
+  useQueryString: boolean = false
 ): Promise<SignedQueryRequest> => {
   const canonical_uri = '/' + getApiConfig().environment + path;
 
@@ -142,46 +146,58 @@ export const getApiSignedTokenRequest = async (
   // Create timestamps required for the request
   const amz_date = moment().utc().format('yyyyMMDDTHHmmss\\Z');
   const date_stamp = moment().utc().format('yyyyMMDD');
+  const algorithm = 'AWS4-HMAC-SHA256';
+  const credential_scope = date_stamp + '/' + region + '/' + service + '/' + 'aws4_request';
 
-  // Step 3: Create the canonical query string (empty in this case)
   let canonical_querystring;
-  // Step 6: Create the payload hash using the SHA256 algorithm
-
   let payload_hash;
+
   if (method === 'GET') {
     payload_hash = crypto.SHA256('');
 
-    // Convertir les paramètres en objet puis les trier par ordre alphabétique
-    const params = new URLSearchParams(request_parameters as string);
-    const sorted_params = new URLSearchParams([...params.entries()].sort());
+    const user_params = new URLSearchParams(user_request_parameters as string);
+    const user_sorted_params = new URLSearchParams([...user_params.entries()].sort());
 
-    // Reconstruire la chaîne de requête triée
-    canonical_querystring = sorted_params.toString();
-  } else {
-    if (request_parameters != '') {
-      payload_hash = crypto.SHA256(JSON.stringify(request_parameters));
+    if (useQueryString) {
+      const params = [
+        'X-Amz-Algorithm=AWS4-HMAC-SHA256',
+        `X-Amz-Credential=${encodeURIComponent(access_key + '/' + credential_scope)}`,
+        `X-Amz-Date=${amz_date}`,
+        'X-Amz-Expires=60', // Expiration en secondes
+        'X-Amz-SignedHeaders=host' + '&' + user_sorted_params.toString(),
+      ];
+
+      if (awsCredentials?.sessionToken) {
+        params.push(`X-Amz-Security-Token=${encodeURIComponent(awsCredentials.sessionToken)}`);
+      }
+      params.sort();
+
+      canonical_querystring = params.join('&');
     } else {
-      payload_hash = crypto.SHA256(request_parameters as string);
+      canonical_querystring = user_sorted_params.toString();
+    }
+  } else {
+    if (user_request_parameters != '') {
+      payload_hash = crypto.SHA256(JSON.stringify(user_request_parameters));
+    } else {
+      payload_hash = crypto.SHA256(user_request_parameters as string);
     }
     canonical_querystring = ''; // Souvent vide pour les autres méthodes
   }
 
-  // Step 4: Create the canonical headers, including the payload hash and timestamps
-  const canonical_headers =
-    'host:' +
-    host +
-    '\n' +
-    'x-amz-content-sha256:' +
-    payload_hash +
-    '\n' +
-    'x-amz-date:' +
-    amz_date +
-    '\n';
+  let canonical_headers;
+  let signed_headers;
 
-  // Step 5: Create the list of signed headers, which must match the canonical headers
-  const signed_headers = 'host;x-amz-content-sha256;x-amz-date';
+  canonical_headers = 'host:' + host + '\n';
+  signed_headers = 'host';
 
-  // Step 7: Combine elements to create the canonical request
+  if (!useQueryString) {
+    canonical_headers +=
+      'x-amz-content-sha256:' + payload_hash + '\n' + 'x-amz-date:' + amz_date + '\n';
+
+    signed_headers += ';x-amz-content-sha256;x-amz-date';
+  }
+
   const canonical_request =
     method +
     '\n' +
@@ -199,21 +215,29 @@ export const getApiSignedTokenRequest = async (
   console.log('canonical_request');
   console.log(canonical_request);
 
-  // Step 2: Create the string to sign, which includes the algorithm, timestamp, credential scope, and hashed canonical request
-  const algorithm = 'AWS4-HMAC-SHA256';
-  const credential_scope = date_stamp + '/' + region + '/' + service + '/' + 'aws4_request';
   const string_to_sign =
-    algorithm + '\n' + amz_date + '\n' + credential_scope + '\n' + crypto.SHA256(canonical_request);
+    algorithm +
+    '\n' +
+    amz_date +
+    '\n' +
+    credential_scope +
+    '\n' +
+    crypto.SHA256(canonical_request as string);
 
-  // Step 3: Calculate the signature using the signing key and the string to sign
   const signing_key = getSignatureKey(secret_key, date_stamp, region, service);
 
   console.log('');
   console.log('string_to_sign');
   console.log(string_to_sign);
 
-  // Sign the string_to_sign using the signing key
   const signature = crypto.HmacSHA256(string_to_sign, signing_key);
+
+  if (useQueryString) {
+    const temp_canonical_querystring = canonical_querystring + `&X-Amz-Signature=${signature}`;
+    const canonical_params = new URLSearchParams(temp_canonical_querystring as string);
+    const sorted_params = new URLSearchParams([...canonical_params.entries()].sort());
+    canonical_querystring = sorted_params.toString();
+  }
 
   // Step 4: Add signing information to the request headers, including the authorization header
   const authorization_header =
@@ -231,7 +255,6 @@ export const getApiSignedTokenRequest = async (
     signature +
     ', ';
 
-  // Prepare the final headers for the request, including security token if available
   const headers = {
     'X-Amz-Content-Sha256': payload_hash as unknown as string,
     'X-Amz-Date': amz_date,
@@ -241,20 +264,16 @@ export const getApiSignedTokenRequest = async (
     //'X-Amz-Target': amz_target, // Uncomment this if targeting a specific API operation
   };
 
-  // Return the signed request object with all necessary information
-
-  let url;
-  if (method === 'GET') {
-    url = canonical_uri + request_parameters;
-  } else {
-    url = canonical_uri;
-  }
+  const url =
+    method === 'GET'
+      ? canonical_uri + (useQueryString ? '?' + canonical_querystring : user_request_parameters)
+      : canonical_uri;
 
   return {
     method: method,
     baseURL: base + host,
     url: url,
-    data: request_parameters,
+    data: user_request_parameters,
     headers: headers,
   };
 };

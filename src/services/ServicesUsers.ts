@@ -8,6 +8,8 @@ export interface QueryTest {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'error';
   path: string;
   parameters: string | { [key: string]: unknown };
+  useQueryString: boolean;
+  forceRefreshToken: boolean;
 }
 const authStore = useAuthStore();
 
@@ -19,23 +21,39 @@ const authStore = useAuthStore();
  * @throws Will throw an error if the API request fails, with the error details logged to the console.
  */
 export async function invokeApi(selected_query: QueryTest) {
-  const awsCredentials = (await authStore.getAWSCredentials(true, false)) as AWSCredentials;
+  const awsCredentials = (await authStore.getAWSCredentials(
+    selected_query.forceRefreshToken,
+    false
+  )) as AWSCredentials;
 
   const signedQyery = await getApiSignedTokenRequest(
     selected_query.method,
     selected_query.path,
     awsCredentials,
-    selected_query.parameters
+    selected_query.parameters,
+    selected_query.useQueryString
   );
 
   try {
-    const response = await axios({
-      method: signedQyery.method,
-      baseURL: signedQyery.baseURL,
-      url: signedQyery.url,
-      data: signedQyery.data,
-      headers: signedQyery.headers,
-    });
+    let response;
+    if (selected_query.useQueryString == true) {
+      response = await axios({
+        method: signedQyery.method,
+        baseURL: signedQyery.baseURL,
+        url: signedQyery.url,
+        //data: signedQyery.data, //We don't need to send data if useQueryString is true
+        //headers: signedQyery.headers, //We don't need to send headers if useQueryString is true
+      });
+    } else {
+      response = await axios({
+        method: signedQyery.method,
+        baseURL: signedQyery.baseURL,
+        url: signedQyery.url,
+        data: signedQyery.data,
+        headers: signedQyery.headers,
+      });
+    }
+
     return response.data ? response.data : response;
   } catch (error) {
     // Log an error message if the API call fails and rethrow the error
