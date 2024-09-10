@@ -4,10 +4,12 @@ import { ref, Ref } from 'vue';
 
 const authStore = useAuthStore();
 
-// Define the type for the WebSocket message
-export interface WebSocketMessage {
+export // Define the type for the WebSocket message
+interface WebSocketOutMessage {
   action: string;
-  data: string | never;
+  data: {
+    prompt: string;
+  };
 }
 
 export class WebSocketClient {
@@ -57,7 +59,8 @@ export class WebSocketClient {
     // When the connection is successfully opened
     this.socket.onopen = () => {
       this.currentState.value = 'OPEN';
-      this.datas.value = this.datas.value + '<br>' + 'WebSocket connection established' + '<br>';
+      this.datas.value =
+        this.datas.value + '<br>' + 'WebSocket connection established' + '<br><br>';
     };
 
     // When a message is received from the server
@@ -90,8 +93,9 @@ export class WebSocketClient {
    * @param message - The message to be sent to the server.
    */
 
-  public sendMessage(message: WebSocketMessage): void {
+  public sendMessage(message: WebSocketOutMessage): void {
     if (this.socket.readyState === WebSocket.OPEN) {
+      this.datas.value = this.datas.value + '<br><b><u>' + message.data.prompt + '</b></u><br><br>';
       this.socket.send(JSON.stringify(message));
       console.log('Message sent:', message);
     } else {

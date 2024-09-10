@@ -8,15 +8,14 @@
         <div><q-btn label="CONNECT" @click="connect" color="primary" /></div>
       </q-card-section>
     </q-card>
-    <q-card>
+    <q-card v-if="currentState == 'OPEN'">
       <q-card-section>
         <q-input v-model="prompt" label="Prompt" />
-
         <div class="text-h6">Send Message</div>
         <div><q-btn label="SEND" @click="sendMessage" color="primary" /></div>
       </q-card-section>
     </q-card>
-    <q-card>
+    <q-card v-if="currentState == 'OPEN'">
       <q-card-section>
         <div class="text-h6">Close</div>
         <div><q-btn label="CLOSE" @click="close" color="primary" /></div>
@@ -27,7 +26,7 @@
       </q-card-section>
     </q-card>
 
-    <q-card>
+    <q-card v-if="datas">
       <q-card-section>
         <div v-html="datas"></div>
       </q-card-section>
@@ -37,7 +36,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onUnmounted } from 'vue';
-import { WebSocketClient, WebSocketMessage } from '../services/ServicesSocketUsers';
+import { WebSocketClient, WebSocketOutMessage } from '../services/ServicesSocketUsers';
 
 export default defineComponent({
   name: 'TestApiPage',
@@ -46,7 +45,7 @@ export default defineComponent({
     const currentState = webSocketClient.currentState; // Track current WebSocket state
     const error_message = ref<string | null>(null); // Error message
     const datas = webSocketClient.datas;
-    const prompt = ref<string>('Bonjour !');
+    const prompt = ref<string>('Donne moi les planètes du système solaire');
 
     onUnmounted(() => {
       if (currentState.value === 'OPEN') {
@@ -67,7 +66,7 @@ export default defineComponent({
     // Send a message through WebSocket
     const sendMessage = () => {
       try {
-        const message: WebSocketMessage = {
+        const message: WebSocketOutMessage = {
           action: 'sendmessage',
           data: { prompt: prompt.value } as never,
         };
