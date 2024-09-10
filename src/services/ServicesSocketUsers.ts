@@ -1,78 +1,102 @@
-// import axios from 'axios';
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
-import { QueryError } from '../utils/api.utils';
-import { RequestSigner, Request, Credentials } from '../utils/aws-signer.utils';
-
-// import { getSignedHeaders } from '../utils/api.utils';
-// import { w3cwebsocket as W3CWebSocket } from 'websocket';
-// import * as crypto from 'crypto-js';
-// import { Signer } from "aws-amplify"
+import { getApiSignedTokenRequest } from '../utils/api.utils';
+import { ref, Ref } from 'vue';
 
 const authStore = useAuthStore();
 
-export async function connect_socket_api_gateway() {
-  const awsCredentials = (await authStore.getAWSCredentials(false, false)) as AWSCredentials;
+export class WebSocketClient {
+  private socket!: WebSocket; // The WebSocket instance
+  public currentState: Ref<string>; // Reactive state of the WebSocket connection
+  public datas: Ref<string> = ref(''); // Reactive state of the WebSocket connection
 
-  // const region = 'eu-west-3';
-  // const host = 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com';
-  // const endpoint = '/dev';
-  // const url = `wss://${host}${endpoint}`;
+  constructor() {
+    // Initialize currentState as 'CLOSED'
+    this.currentState = ref('CLOSED');
+  }
 
-  try {
-    // Définir la requête
-    const request: Request = {
-      //method: 'GET',
-      host: 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com',
-      path: '/dev',
-      signQuery: true,
-      // headers: {
-      //   'Content-Type': 'application/json',
-      // },
-      service: 'execute-api',
-      region: 'eu-west-3',
+  /**
+   * Initiates the WebSocket connection asynchronously.
+   *
+   * This method fetches AWS credentials, signs the API request, and creates the WebSocket connection.
+   * It updates `currentState` to track the status of the connection.
+   */
+  public async connect(): Promise<void> {
+    try {
+      // Step 1: Fetch AWS credentials
+      const awsCredentials = (await authStore.getAWSCredentials(false, false)) as AWSCredentials;
+
+      // Step 2: Get the signed query for WebSocket URL
+      const signedQuery = await getApiSignedTokenRequest('GET', '/dev', awsCredentials, '', true, {
+        host: 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com',
+        region: 'eu-west-3',
+        protocol: 'wss',
+      });
+
+      // Step 3: Create WebSocket connection using the signed URL
+      this.socket = new WebSocket(signedQuery.baseURL + signedQuery.url);
+
+      // Step 4: Set up WebSocket event listeners
+      this.setupEventListeners();
+    } catch (error) {
+      console.error('WebSocket connection failed', error);
+      this.currentState.value = 'ERROR';
+    }
+  }
+
+  /**
+   * Sets up event listeners for the WebSocket instance to track its state.
+   */
+  private setupEventListeners(): void {
+    // When the connection is successfully opened
+    this.socket.onopen = () => {
+      this.currentState.value = 'OPEN';
+      console.log('WebSocket connection established');
     };
 
-    // Définir les informations d'identification
-    const credentials: Credentials = {
-      accessKeyId: awsCredentials.accessKeyId,
-      secretAccessKey: awsCredentials.secretAccessKey,
-      sessionToken: awsCredentials.sessionToken,
+    // When a message is received from the server
+    this.socket.onmessage = (event: MessageEvent) => {
+      console.log('Message from server:', event.data);
+      this.datas.value = event.data;
     };
 
-    const requestSigner = new RequestSigner(request, credentials);
-    const signedRequest = requestSigner.sign();
-
-    console.log('CANONICAL STRING : ');
-    console.log(requestSigner.canonicalString());
-    console.log('');
-    console.log('STRING TO SIGN');
-    console.log(requestSigner.stringToSign());
-
-    console.log('wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/');
-    console.log('wss://' + signedRequest.host + signedRequest.path);
-
-    const socket = new WebSocket('wss://' + signedRequest.host + signedRequest.path);
-    //const socket = new WebSocket('wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/');
-    socket.onopen = function (this: WebSocket, ev: Event) {
-      console.log('CONNECTED');
-      console.log(ev);
+    // When an error occurs in the WebSocket connection
+    this.socket.onerror = (event: Event) => {
+      console.error('WebSocket encountered an error', event);
+      this.currentState.value = 'ERROR';
+      this.datas.value = '{"message": "WebSocket Error"}';
     };
-    socket.onerror = function (this: WebSocket, ev: Event) {
-      console.log('ERROR ');
-      console.log(ev);
+
+    // When the connection is closed
+    this.socket.onclose = () => {
+      this.currentState.value = 'CLOSED';
+      console.log('WebSocket connection closed');
+      this.datas.value = '{"message": "WebSocket connection closed"}';
     };
-    socket.onclose = function (this: WebSocket, ev: CloseEvent) {
-      console.error('WebSocket Close:', ev);
-      if (ev.code !== 1000) {
-        console.error('WebSocket closed with an error:', ev.code, ev.reason);
-      }
-    };
-    return 'true';
-  } catch (error) {
-    console.error(
-      'API call failed',
-      (error as QueryError).response?.data || (error as QueryError).message || error
-    );
-    throw error;
+  }
+
+  /**
+   * Sends a message through the WebSocket if the connection is open.
+   * @param message - The message to be sent to the server.
+   */
+  public sendMessage(message: string): void {
+    if (this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(message);
+      console.log('Message sent:', message);
+    } else {
+      console.error('Cannot send message, WebSocket is not open');
+      this.datas.value = '{"message": "Cannot send message, WebSocket is not open"}';
+    }
+  }
+
+  /**
+   * Closes the WebSocket connection if it is open.
+   */
+  public closeConnection(): void {
+    if (
+      this.socket.readyState === WebSocket.OPEN ||
+      this.socket.readyState === WebSocket.CONNECTING
+    ) {
+      this.socket.close();
+    }
   }
 }

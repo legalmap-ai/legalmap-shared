@@ -13,33 +13,6 @@ export interface QueryTest {
 }
 const authStore = useAuthStore();
 
-export async function invokeSocketApi() {
-  const awsCredentials = (await authStore.getAWSCredentials(false, false)) as AWSCredentials;
-
-  const signedQuery = await getApiSignedTokenRequest('GET', '/dev', awsCredentials, '', true, {
-    host: 'g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com',
-    region: 'eu-west-3',
-    protocol: 'wss',
-  });
-  //wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/
-  //signedQuery.url = signedQuery.url.replace('/devarnaud/dev', '/dev');
-
-  debugger;
-
-  const socket = new WebSocket(signedQuery.baseURL + signedQuery.url);
-  //const socket = new WebSocket('wss://g7fi8sjqt9.execute-api.eu-west-3.amazonaws.com/dev/');
-  socket.onopen = function (this: WebSocket, ev: Event) {
-    console.log('CONNECTED');
-    console.log(ev);
-  };
-  socket.onerror = function (this: WebSocket, ev: Event) {
-    console.log('ERROR ');
-    console.log(ev);
-  };
-
-  return [];
-}
-
 /**
  * Invokes an API request with the specified query details.
  *
