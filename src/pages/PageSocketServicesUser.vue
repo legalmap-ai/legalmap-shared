@@ -3,28 +3,17 @@
 <template>
   <q-page padding>
     <q-card>
-      <q-card-section v-if="error_message" class="text-negative">
-        Erreur: {{ error_message }}
-      </q-card-section>
-    </q-card>
-    <q-card>
       <q-card-section>
         <div class="text-h6">CONNECT: {{ currentState }}</div>
         <div><q-btn label="CONNECT" @click="connect" color="primary" /></div>
       </q-card-section>
-
-      <q-card-section v-if="error_message" class="text-negative">
-        Erreur: {{ error_message }}
-      </q-card-section>
     </q-card>
     <q-card>
       <q-card-section>
+        <q-input v-model="prompt" label="Prompt" />
+
         <div class="text-h6">Send Message</div>
         <div><q-btn label="SEND" @click="sendMessage" color="primary" /></div>
-      </q-card-section>
-
-      <q-card-section v-if="error_message" class="text-negative">
-        Erreur: {{ error_message }}
       </q-card-section>
     </q-card>
     <q-card>
@@ -39,14 +28,16 @@
     </q-card>
 
     <q-card>
-      <q-card-section> Datas: {{ datas }} </q-card-section>
+      <q-card-section>
+        <div v-html="datas"></div>
+      </q-card-section>
     </q-card>
   </q-page>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onUnmounted } from 'vue';
-import { WebSocketClient } from '../services/ServicesSocketUsers';
+import { WebSocketClient, WebSocketMessage } from '../services/ServicesSocketUsers';
 
 export default defineComponent({
   name: 'TestApiPage',
@@ -55,6 +46,7 @@ export default defineComponent({
     const currentState = webSocketClient.currentState; // Track current WebSocket state
     const error_message = ref<string | null>(null); // Error message
     const datas = webSocketClient.datas;
+    const prompt = ref<string>('Bonjour !');
 
     onUnmounted(() => {
       if (currentState.value === 'OPEN') {
@@ -75,7 +67,12 @@ export default defineComponent({
     // Send a message through WebSocket
     const sendMessage = () => {
       try {
-        webSocketClient.sendMessage('Hello from Vue!');
+        const message: WebSocketMessage = {
+          action: 'sendmessage',
+          data: { prompt: prompt.value } as never,
+        };
+        webSocketClient.sendMessage(message);
+
         error_message.value = null;
       } catch (error) {
         error_message.value = 'Failed to send message';
@@ -96,6 +93,7 @@ export default defineComponent({
       datas,
       currentState,
       error_message,
+      prompt,
       connect,
       sendMessage,
       close,

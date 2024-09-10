@@ -4,6 +4,12 @@ import { ref, Ref } from 'vue';
 
 const authStore = useAuthStore();
 
+// Define the type for the WebSocket message
+export interface WebSocketMessage {
+  action: string;
+  data: string | never;
+}
+
 export class WebSocketClient {
   private socket!: WebSocket; // The WebSocket instance
   public currentState: Ref<string>; // Reactive state of the WebSocket connection
@@ -39,6 +45,7 @@ export class WebSocketClient {
       this.setupEventListeners();
     } catch (error) {
       console.error('WebSocket connection failed', error);
+      this.datas.value = this.datas.value + '<br>' + error + '<br>';
       this.currentState.value = 'ERROR';
     }
   }
@@ -50,27 +57,31 @@ export class WebSocketClient {
     // When the connection is successfully opened
     this.socket.onopen = () => {
       this.currentState.value = 'OPEN';
-      console.log('WebSocket connection established');
+      this.datas.value = this.datas.value + '<br>' + 'WebSocket connection established' + '<br>';
     };
 
     // When a message is received from the server
     this.socket.onmessage = (event: MessageEvent) => {
-      console.log('Message from server:', event.data);
-      this.datas.value = event.data;
+      const data = JSON.parse(event.data);
+      if (data.message != 'Fin de la transmission !') {
+        this.datas.value = this.datas.value + data.message.replace('\n', '<br>');
+      } else {
+        this.datas.value = this.datas.value + '<br>';
+      }
     };
 
     // When an error occurs in the WebSocket connection
     this.socket.onerror = (event: Event) => {
       console.error('WebSocket encountered an error', event);
       this.currentState.value = 'ERROR';
-      this.datas.value = '{"message": "WebSocket Error"}';
+      this.datas.value = this.datas.value + '<br>' + 'WebSocket encountered an error';
     };
 
     // When the connection is closed
     this.socket.onclose = () => {
       this.currentState.value = 'CLOSED';
       console.log('WebSocket connection closed');
-      this.datas.value = '{"message": "WebSocket connection closed"}';
+      this.datas.value = this.datas.value + '<br>' + 'WebSocket connection closed';
     };
   }
 
@@ -78,9 +89,10 @@ export class WebSocketClient {
    * Sends a message through the WebSocket if the connection is open.
    * @param message - The message to be sent to the server.
    */
-  public sendMessage(message: string): void {
+
+  public sendMessage(message: WebSocketMessage): void {
     if (this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(message);
+      this.socket.send(JSON.stringify(message));
       console.log('Message sent:', message);
     } else {
       console.error('Cannot send message, WebSocket is not open');
