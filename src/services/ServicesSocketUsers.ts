@@ -16,6 +16,7 @@ export class WebSocketClient {
   private socket!: WebSocket; // The WebSocket instance
   public currentState: Ref<string>; // Reactive state of the WebSocket connection
   public datas: Ref<string> = ref(''); // Reactive state of the WebSocket connection
+  public error_message: Ref<string> = ref(''); // Error received from the WebSocket connection messages
 
   constructor() {
     // Initialize currentState as 'CLOSED'
@@ -66,10 +67,18 @@ export class WebSocketClient {
     // When a message is received from the server
     this.socket.onmessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
-      if (data.message != 'Fin de la transmission !') {
-        this.datas.value = this.datas.value + data.message.replace('\n', '<br>');
+      if (data.error) {
+        this.error_message.value = data.error;
       } else {
-        this.datas.value = this.datas.value + '<br>';
+        if (data.message != 'Fin de la transmission !') {
+          if (data.message == '<i>Creating stream response : Done</i>\n') {
+            this.datas.value = '<br>';
+          } else {
+            this.datas.value = this.datas.value + data.message.replace('\n', '<br>');
+          }
+        } else {
+          this.datas.value = this.datas.value + '<br>';
+        }
       }
     };
 
@@ -95,7 +104,7 @@ export class WebSocketClient {
 
   public sendMessage(message: WebSocketOutMessage): void {
     if (this.socket.readyState === WebSocket.OPEN) {
-      this.datas.value = this.datas.value + '<br><b><u>' + message.data.prompt + '</b></u><br><br>';
+      this.datas.value = '';
       this.socket.send(JSON.stringify(message));
       console.log('Message sent:', message);
     } else {
