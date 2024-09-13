@@ -75,6 +75,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'http',
     link: 'socket-services-users',
   },
+  {
+    title: 'Page Stripe abonnements',
+    caption: 'Stripe abonnements',
+    icon: 'credit_card',
+    link: 'subscription',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

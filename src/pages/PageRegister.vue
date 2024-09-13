@@ -76,12 +76,14 @@
         type="number"
         v-model="code"
         placeholder="Code de vérification"
-        class="q-pb-md q-pt-md"
+        class="q-pb-sm q-pt-md"
         label="Code de vérification"
       />
+
       <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
         >Réinitialiser</BaseButton
       >
+      <a class="forgot q-pb-md" @click="handleAskCode">Renvoyer le code</a>
     </form>
   </div>
 </template>
@@ -90,7 +92,7 @@
 import BaseButton from '../components/BaseButton.vue';
 
 import { ref } from 'vue';
-import { signUp, confirmSignUp } from 'aws-amplify/auth';
+import { signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 
 import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
@@ -197,6 +199,10 @@ const validatePassword2 = (text: string | number | null) => {
   } else {
     password2Error.value = '';
   }
+};
+
+const handleAskCode = () => {
+  resendSignUpCode({ username: username.value });
 };
 </script>
 
