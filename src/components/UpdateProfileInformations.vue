@@ -103,6 +103,8 @@ export default defineComponent({
           parameters: {
             ...localProfile.value,
           },
+          useQueryString: false,
+          forceRefreshToken: false,
         });
         Notify.create({
           message: 'Votre profil a été mis à jour',

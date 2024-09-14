@@ -151,9 +151,9 @@ export default defineComponent({
     // };
 
     const profile = ref({
-      email: 'matteokocken@gmail.com',
-      given_name: 'Matteo',
-      family_name: 'Kocken',
+      email: 'abedoyere@gmail.com',
+      given_name: 'Arnaud',
+      family_name: 'de La Bédoyère',
     }) as Ref<Profile>;
 
     const password_dict = ref({

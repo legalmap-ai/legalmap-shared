@@ -35,6 +35,8 @@ export default defineComponent({
         parameters: {
           priceId: 'price_1PvGWNP4GCw0NcGs52rsGVmk',
         },
+        useQueryString: false,
+        forceRefreshToken: false,
       });
 
       if (getPortail.session_url) {
