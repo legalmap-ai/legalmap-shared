@@ -52,7 +52,6 @@ export async function invokeApi(selected_query: QueryTest) {
         headers: signedQuery.headers,
       });
     }
-
     return response.data ? response.data : response;
   } catch (error) {
     // Log an error message if the API call fails and rethrow the error

@@ -81,6 +81,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'credit_card',
     link: 'subscription',
   },
+  {
+    title: 'Page Services PDFs',
+    caption: 'LegalMap API PDFs Services',
+    icon: 'http',
+    link: 'services-pdfs',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

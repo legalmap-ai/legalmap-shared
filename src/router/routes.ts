@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: '', component: () => import('pages/PageServicesUser.vue') }],
   },
   {
+    path: '/services-pdfs',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageServicesPdfs.vue') }],
+  },
+
+  {
     path: '/socket-services-users',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/PageSocketServicesUser.vue') }],
