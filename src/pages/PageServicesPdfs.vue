@@ -1,152 +1,147 @@
-<!-- src/pages/TestApiPage.vue -->
-
 <template>
-  <q-page padding>
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Tester la requête : {{ ref_selected_query.index }}</div>
-        <q-btn-dropdown color="primary" label="Requêtes">
-          <q-list v-model="ref_selected_query">
-            <q-item v-for="query in query_tests" :key="query.index" clickable v-close-popup>
-              <q-item-section @click="ref_selected_query = query">
-                <q-item-label
-                  >Path: {{ query.path }} - Méthode : {{ query.method }} - Paramètres:
-                  {{ query.parameters }} - UQS : {{ query.useQueryString }} - Refresh
-                  {{ query.forceRefreshToken }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-      </q-card-section>
+  <q-page>
+    <q-card-section v-if="api_error" class="text-negative">
+      Erreur: {{ api_error }}
+    </q-card-section>
 
-      <q-card-section>
-        <q-btn label="Tester la requête" @click="testApi" color="primary" />
-      </q-card-section>
+    <q-card-section v-if="api_response">
+      <div class="q-mb-sm">
+        {{ api_response }}
+      </div>
+    </q-card-section>
 
-      <q-card-section v-if="error_message" class="text-negative">
-        Erreur: {{ error_message }}
-      </q-card-section>
-
-      <q-card-section v-if="messageApi">
-        <div class="q-mb-sm">
-          {{ messageApi }}
-        </div>
-      </q-card-section>
-    </q-card>
+    <div class="q-pt-sm text-center">
+      <div>
+        <q-btn
+          outline
+          size="sm"
+          color="primary"
+          unelevated
+          text-color="primary"
+          @click="pdfPage = pdfPage > 1 ? pdfPage - 1 : pdfPage"
+        >
+          Prev
+        </q-btn>
+        <span class="text-h10 daxte-text-dx-blue-grey-1-h2"
+          >&nbsp;{{ pdfPage }} / {{ pdfData.pages }}&nbsp;</span
+        >
+        <q-btn
+          outline
+          size="sm"
+          color="primary"
+          unelevated
+          text-color="primary"
+          @click="pdfPage = pdfPage < pdfData.pages ? pdfPage + 1 : pdfPage"
+        >
+          Next
+        </q-btn>
+      </div>
+      <div class="text-center q-pt-sm">
+        <VuePDF :pdf="pdfData.pdf" :page="pdfPage" />
+      </div>
+    </div>
   </q-page>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { invokeApi, QueryTest } from '../services/ServicesUsers';
+import { defineComponent, ref, onMounted, watch, ShallowRef } from 'vue';
+import { VuePDF, usePDF } from '@tato30/vue-pdf'; //PDFInfo
+import { invokeApi } from '../services/ServicesUsers';
 import { QueryError } from '../utils/api.utils';
 import { translateError } from '../utils/errors.utils';
 
+export interface PdfDataQuery {
+  type: string;
+  datas: string;
+}
+
+export interface PdfDatas {
+  pdf?: ShallowRef;
+  pdfDoc?: ShallowRef | null;
+  pages?: ShallowRef;
+  info?: ShallowRef;
+}
+
 export default defineComponent({
-  name: 'PageServicesPdfs',
+  components: {
+    VuePDF, // Déclare le composant vue-pdf
+  },
   setup() {
-    const messageApi = ref<string[]>([]);
-    const error_message = ref<string | null>(null);
-    const query_tests = ref<QueryTest[]>([
-      {
-        index: 0,
-        method: 'GET',
-        path: '/pdfs/123456789',
-        parameters: '',
-        useQueryString: false,
-        forceRefreshToken: false,
-      },
-      // {
-      //   index: 1,
-      //   method: 'GET',
-      //   path: '/test',
-      //   parameters: '?methode=GET&name=arnaud&age=43',
-      //   useQueryString: true,
-      //   forceRefreshToken: true,
-      // },
-      // {
-      //   index: 2,
-      //   method: 'GET',
-      //   path: '/test',
-      //   parameters: '?methode=GET&name=arnaud&age=43',
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
+    const isPdfVisible = ref(false);
+    const pdfData = ref<PdfDatas>({});
+    const pdfUrl = ref('');
+    const pdfPage = ref(1);
+    const { pdf } = usePDF({
+      url: pdfUrl.value,
+    });
 
-      // {
-      //   index: 3,
-      //   method: 'POST',
-      //   path: '/test',
-      //   parameters: 'je suis un simple message envoyé via POST',
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
+    watch(
+      () => pdfUrl.value,
+      (newValue) => {
+        const { pdf, pages, info } = usePDF(newValue);
+        pdfData.value = {
+          pdf,
+          pages,
+          info,
+        };
+      }
+    );
 
-      // {
-      //   index: 4,
-      //   method: 'POST',
-      //   path: '/test',
-      //   parameters: { methode: 'POST', name: 'arnaud', age: 43 },
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
+    const pdfBlobUrl = ref<string | null>(null);
+    const api_error = ref<string | null>(null);
+    const api_response = ref<PdfDataQuery | null>(null);
 
-      // {
-      //   index: 5,
-      //   method: 'PUT',
-      //   path: '/test',
-      //   parameters: { methode: 'PUT', name: 'arnaud', age: 43 },
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
-      // {
-      //   index: 6,
-      //   method: 'DELETE',
-      //   path: '/test',
-      //   parameters: { methode: 'DELETE', name: 'arnaud', age: 43 },
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
-      // {
-      //   index: 7,
-      //   method: 'error',
-      //   path: '/test',
-      //   parameters: { methode: 'DELETE', name: 'arnaud', age: 43 },
-      //   useQueryString: false,
-      //   forceRefreshToken: false,
-      // },
-    ]);
-
-    const ref_selected_query = ref<QueryTest>(query_tests.value[0]);
-    const testApi = async () => {
+    const loadPdf = async () => {
       try {
-        error_message.value = null; // Reset error before fetch
-        messageApi.value = await invokeApi(ref_selected_query.value);
+        api_error.value = null; // Reset error before fetch
+        console.log('sended query');
+        api_response.value = (await invokeApi({
+          index: 0,
+          method: 'GET',
+          path: '/pdfs/123456789',
+          parameters: '',
+          useQueryString: false,
+          forceRefreshToken: false,
+        })) as PdfDataQuery;
+        console.log('received results');
+        const pdf_data = api_response.value.datas;
+
+        // Convertir le PDF encodé en base64 en Blob
+        const byteCharacters = atob(pdf_data); // Décodage du base64
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
+
+        // Créer un URL Blob à utiliser dans vue-pdf
+        pdfBlobUrl.value = URL.createObjectURL(pdfBlob);
+        pdfUrl.value = pdfBlobUrl.value;
       } catch (error) {
         const translated_error = translateError(error as QueryError);
         console.log(translated_error);
         const errorDetails =
           (error as QueryError).response?.data || (error as QueryError).message || error;
-        error_message.value =
+        api_error.value =
           'API call failed: ' +
           (typeof errorDetails === 'object' ? JSON.stringify(errorDetails, null, 2) : errorDetails);
       }
     };
 
+    onMounted(() => {
+      loadPdf();
+    });
+
     return {
-      messageApi,
-      error_message,
-      query_tests,
-      ref_selected_query,
-      testApi,
+      api_response,
+      api_error,
+      isPdfVisible,
+      pdfPage,
+      pdfData,
+      pdfUrl,
+      pdf,
     };
   },
 });
 </script>
-
-<style scoped>
-.text-negative {
-  color: #f44336;
-}
-</style>

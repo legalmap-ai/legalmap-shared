@@ -15,6 +15,7 @@
   "dependencies": {
     "@aws-amplify/ui-vue": "^4.2.11",
     "@quasar/extras": "^1.16.4",
+    "@tato30/vue-pdf": "^1.11.1",
     "@types/crypto-js": "^4.2.2",
     "@types/websocket": "^1.0.10",
     "aws-amplify": "^6.5.2",
