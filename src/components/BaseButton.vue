@@ -1,10 +1,5 @@
 <template>
-  <button
-    class="button"
-    :class="getClass"
-    :style="getStyle"
-    @click="handleClick"
-  >
+  <button class="button" :class="getClass" :style="getStyle" @click="handleClick">
     <slot></slot>
     <!-- <img v-if="props.icon" :src="props.icon" alt="icon" /> -->
   </button>

@@ -3,17 +3,10 @@
 
 const awsmobile = {
     "aws_project_region": "eu-west-3",
-    "aws_cloud_logic_custom": [
-        {
-            "name": "legalmapApiService",
-            "endpoint": "https://h1yhmt0goe.execute-api.eu-west-3.amazonaws.com/devsocket",
-            "region": "eu-west-3"
-        }
-    ],
-    "aws_cognito_identity_pool_id": "eu-west-3:996cf06a-d19e-42a7-a1b7-16f477711352",
+    "aws_cognito_identity_pool_id": "eu-west-3:99114aea-8ce0-4c73-91ab-084120166d19",
     "aws_cognito_region": "eu-west-3",
-    "aws_user_pools_id": "eu-west-3_dXOCpYTwY",
-    "aws_user_pools_web_client_id": "4oft0md5qsug3qvohlsrukbip2",
+    "aws_user_pools_id": "eu-west-3_7cMEMrTgL",
+    "aws_user_pools_web_client_id": "1v89kd6jhi3po6bta99g7l97qf",
     "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
@@ -38,6 +31,13 @@ const awsmobile = {
     },
     "aws_cognito_verification_mechanisms": [
         "EMAIL"
+    ],
+    "aws_cloud_logic_custom": [
+        {
+            "name": "legalmapApiService",
+            "endpoint": "https://6zkggqg3qg.execute-api.eu-west-3.amazonaws.com/dev",
+            "region": "eu-west-3"
+        }
     ]
 };
 

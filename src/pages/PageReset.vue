@@ -45,6 +45,7 @@
       <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
         >Réinitialiser</BaseButton
       >
+      <a class="forgot q-pb-md" @click="handleSubmit">Renvoyer le code</a>
     </form>
   </div>
 </template>
