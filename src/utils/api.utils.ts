@@ -77,7 +77,9 @@ export const getApiConfig = (): { protocol: string; endpoint: string; environmen
   let api_endpoint = '';
 
   if (process.env.DEV) {
-    api_endpoint = awsconfigDev.aws_cloud_logic_custom[0].endpoint;
+    //api_endpoint = awsconfigDev.aws_cloud_logic_custom[0].endpoint;
+    //api_endpoint = 'http://127.0.0.1:3000/dev'; // For development only with sam
+    api_endpoint = 'https://opf43pw7ve.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam
   } else {
     api_endpoint = awsconfigMaster.aws_cloud_logic_custom[0].endpoint;
   }
@@ -162,6 +164,7 @@ export const getApiSignedTokenRequest = async (
 
     const user_params = new URLSearchParams(user_request_parameters as string);
     const user_sorted_params = new URLSearchParams([...user_params.entries()].sort());
+    const formated_user_sorted_params = user_sorted_params.toString().replace(/\+/g, '%20');
 
     if (useQueryString) {
       const params = [
@@ -171,7 +174,7 @@ export const getApiSignedTokenRequest = async (
         'X-Amz-Expires=60', // Expiration en secondes
       ];
       if (user_sorted_params.size > 0) {
-        params.push('X-Amz-SignedHeaders=host' + '&' + user_sorted_params.toString());
+        params.push('X-Amz-SignedHeaders=host' + '&' + formated_user_sorted_params);
       } else {
         params.push('X-Amz-SignedHeaders=host');
       }
@@ -183,7 +186,7 @@ export const getApiSignedTokenRequest = async (
 
       canonical_querystring = params.join('&');
     } else {
-      canonical_querystring = user_sorted_params.toString();
+      canonical_querystring = formated_user_sorted_params;
     }
   } else {
     if (user_request_parameters != '') {
@@ -273,10 +276,13 @@ export const getApiSignedTokenRequest = async (
     //'X-Amz-Target': amz_target, // Uncomment this if targeting a specific API operation
   };
 
-  const url =
-    method === 'GET'
-      ? canonical_uri + (useQueryString ? '?' + canonical_querystring : user_request_parameters)
-      : canonical_uri;
+  let url = '';
+
+  if (method === 'GET' && useQueryString == true) {
+    url = canonical_uri + (useQueryString ? '?' + canonical_querystring : user_request_parameters);
+  } else {
+    url = canonical_uri;
+  }
 
   return {
     method: method,

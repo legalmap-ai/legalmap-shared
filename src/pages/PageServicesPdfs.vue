@@ -98,9 +98,14 @@ export default defineComponent({
         api_response.value = (await invokeApi({
           index: 0,
           method: 'GET',
-          path: '/pdfs/123456789',
-          parameters: '',
-          useQueryString: false,
+          path: '/pdfs/62fd6126138a209d5e24a13f', //62fd6126138a209d5e24a13f
+          parameters: {
+            highlight: ['arnaud de la bédoyère', 'daxte', 'g3cb', 'société'], //null or ['phrase 1', 'phrase 2']
+            pages: 'all', //ALL or [1,2,3,4]
+            action: 'read', //read or download
+          },
+          //parameters: '',
+          useQueryString: true,
           forceRefreshToken: false,
         })) as PdfDataQuery;
         console.log('received results');
@@ -118,6 +123,8 @@ export default defineComponent({
         // Créer un URL Blob à utiliser dans vue-pdf
         pdfBlobUrl.value = URL.createObjectURL(pdfBlob);
         pdfUrl.value = pdfBlobUrl.value;
+
+        console.log(pdfUrl.value);
       } catch (error) {
         const translated_error = translateError(error as QueryError);
         console.log(translated_error);
