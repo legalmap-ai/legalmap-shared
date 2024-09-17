@@ -132,10 +132,6 @@ export default defineComponent({
     const pdfMatchUniquePagesNumber = ref<number[]>([]);
     const pdfSearchDetails = ref<SearchDetails>({});
 
-    const { pdf } = usePDF({
-      url: pdfUrl.value,
-    });
-
     const updatePdf = (value: string) => {
       const { pdf, pages, info } = usePDF(value);
       pdfData.value = {
@@ -185,6 +181,7 @@ export default defineComponent({
 
       updatePdf(pdfUrl.value);
     };
+
     const loadPdf = async () => {
       try {
         api_error.value = null; // Reset error before fetch
@@ -257,7 +254,7 @@ export default defineComponent({
       pdfPage,
       pdfData,
       pdfUrl,
-      pdf,
+      // pdf,
     };
   },
 });
