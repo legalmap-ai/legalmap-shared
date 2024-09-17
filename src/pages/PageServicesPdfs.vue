@@ -9,6 +9,20 @@
         {{ api_response }}
       </div>
     </q-card-section>
+    <q-card-section>
+      <div class="q-mb-sm">
+        <q-btn size="md" color="primary" unelevated @click="loadPdf">Charger le pdf</q-btn>
+      </div>
+      <q-input
+        v-model="keywords"
+        type="text"
+        label="Mots clés"
+        outlined
+        dense
+        class="text-h10"
+        style="width: 300px"
+      ></q-input>
+    </q-card-section>
 
     <div class="q-pt-sm text-center">
       <div>
@@ -36,8 +50,10 @@
           Next
         </q-btn>
       </div>
-      <div class="text-center q-pt-sm">
-        <VuePDF :pdf="pdfData.pdf" :page="pdfPage" />
+      <div class="pdf-thumbnails-container">
+        <div class="thumbnail" v-for="page in pdfData.pages" :key="page">
+          <VuePDF :pdf="pdfData.pdf" :page="page" style="width: 100%" />
+        </div>
       </div>
     </div>
   </q-page>
@@ -45,7 +61,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch, ShallowRef } from 'vue';
-import { VuePDF, usePDF } from '@tato30/vue-pdf'; //PDFInfo
+import { VuePDF, usePDF } from '@tato30/vue-pdf';
 import { invokeApi } from '../services/ServicesUsers';
 import { QueryError } from '../utils/api.utils';
 import { translateError } from '../utils/errors.utils';
@@ -67,7 +83,7 @@ export default defineComponent({
     VuePDF, // Déclare le composant vue-pdf
   },
   setup() {
-    const isPdfVisible = ref(false);
+    const keywords = ref('');
     const pdfData = ref<PdfDatas>({});
     const pdfUrl = ref('');
     const pdfPage = ref(1);
@@ -95,16 +111,25 @@ export default defineComponent({
       try {
         api_error.value = null; // Reset error before fetch
         console.log('sended query');
+
+        let highlightArray;
+        if (keywords.value == '') {
+          highlightArray = [''];
+        } else {
+          highlightArray = keywords.value
+            .split(',')
+            .map((word) => word.trim())
+            .filter(Boolean);
+        }
         api_response.value = (await invokeApi({
           index: 0,
           method: 'GET',
-          path: '/pdfs/62fd6126138a209d5e24a13f', //62fd6126138a209d5e24a13f
+          path: '/pdfs/62fd6126138a209d5e24a13f',
           parameters: {
-            highlight: ['arnaud de la bédoyère', 'daxte', 'g3cb', 'société'], //null or ['phrase 1', 'phrase 2']
-            pages: 'all', //ALL or [1,2,3,4]
-            action: 'read', //read or download
+            highlight: highlightArray,
+            pages: 'all',
+            action: 'read',
           },
-          //parameters: '',
           useQueryString: true,
           forceRefreshToken: false,
         })) as PdfDataQuery;
@@ -112,7 +137,7 @@ export default defineComponent({
         const pdf_data = api_response.value.datas;
 
         // Convertir le PDF encodé en base64 en Blob
-        const byteCharacters = atob(pdf_data); // Décodage du base64
+        const byteCharacters = atob(pdf_data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
           byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -120,10 +145,8 @@ export default defineComponent({
         const byteArray = new Uint8Array(byteNumbers);
         const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
 
-        // Créer un URL Blob à utiliser dans vue-pdf
         pdfBlobUrl.value = URL.createObjectURL(pdfBlob);
         pdfUrl.value = pdfBlobUrl.value;
-
         console.log(pdfUrl.value);
       } catch (error) {
         const translated_error = translateError(error as QueryError);
@@ -136,14 +159,13 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      loadPdf();
-    });
+    onMounted(() => {});
 
     return {
+      loadPdf,
       api_response,
       api_error,
-      isPdfVisible,
+      keywords,
       pdfPage,
       pdfData,
       pdfUrl,
@@ -152,3 +174,40 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.pdf-thumbnails-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Centre les éléments horizontalement */
+  align-items: center; /* Centre les éléments verticalement, si nécessaire */
+  width: 100%;
+  overflow: hidden;
+}
+
+.thumbnail {
+  margin: 10px; /* Optionnel: ajoute un peu de marge autour des miniatures */
+  display: flex;
+  justify-content: center; /* Centre le contenu à l'intérieur de chaque miniature si nécessaire */
+  align-items: center;
+}
+</style>
+
+<!--
+@media (max-width: 1024px) {
+  .thumbnail {
+    flex: 1 1 calc(33.333% - 32px); /* 3 miniatures par ligne */
+  }
+}
+
+@media (max-width: 768px) {
+  .thumbnail {
+    flex: 1 1 calc(50% - 32px); /* 2 miniatures par ligne */
+  }
+}
+
+@media (max-width: 480px) {
+  .thumbnail {
+    flex: 1 1 calc(100% - 32px); /* 1 miniature par ligne */
+  }
+} -->

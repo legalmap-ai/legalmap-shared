@@ -25,6 +25,7 @@ export async function invokeApi(selected_query: QueryTest) {
     selected_query.forceRefreshToken,
     false
   )) as AWSCredentials;
+
   const signedQuery = await getApiSignedTokenRequest(
     selected_query.method,
     '/' + getApiConfig().environment + selected_query.path,
