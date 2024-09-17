@@ -23,7 +23,21 @@
         style="width: 300px"
       ></q-input>
     </q-card-section>
-
+    <q-card-section>
+      <div class="q-mb-sm">
+        <div>
+          <div v-for="(detail, phrase) in pdfSearchDetails" :key="phrase">
+            <q-checkbox
+              v-model="detail['filter']"
+              @update:model-value="updateFilters(phrase, detail.pages, $event)"
+              >Filtrer</q-checkbox
+            >
+            Pages pour la recherche {{ phrase }} :
+            <span v-for="page in detail.pages" :key="page" class="page-item"> - {{ page }} </span>
+          </div>
+        </div>
+      </div>
+    </q-card-section>
     <div class="q-pt-sm text-center">
       <div>
         <q-btn
@@ -50,9 +64,29 @@
           Next
         </q-btn>
       </div>
-      <div class="pdf-thumbnails-container">
+      {{ pdfMatchUniquePagesNumber.length }}
+      <div class="pdf-thumbnails-container" v-if="pdfMatchUniquePagesNumber.length == 0">
         <div class="thumbnail" v-for="page in pdfData.pages" :key="page">
-          <VuePDF :pdf="pdfData.pdf" :page="page" style="width: 100%" />
+          <div class="text-center">
+            <h3>{{ page }}</h3>
+            <VuePDF
+              :pdf="pdfData.pdf"
+              :page="page"
+              style="width: 100%; border: 1px solid #cccccc"
+            />
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <div class="thumbnail" v-for="pageIndex in pdfMatchUniquePagesNumber" :key="pageIndex">
+          <div class="text-center">
+            <h3>{{ pageIndex }}</h3>
+            <VuePDF
+              :pdf="pdfData.pdf"
+              :page="pageIndex"
+              style="width: 100%; border: 1px solid #cccccc"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -66,9 +100,16 @@ import { invokeApi } from '../services/ServicesUsers';
 import { QueryError } from '../utils/api.utils';
 import { translateError } from '../utils/errors.utils';
 
+export interface SearchDetails {
+  [key: string]: {
+    pages: number[]; // ou string[] si les pages sont représentées par des chaînes
+    filter: boolean;
+  };
+}
 export interface PdfDataQuery {
   type: string;
   datas: string;
+  details: SearchDetails;
 }
 
 export interface PdfDatas {
@@ -87,19 +128,26 @@ export default defineComponent({
     const pdfData = ref<PdfDatas>({});
     const pdfUrl = ref('');
     const pdfPage = ref(1);
+    const pdfMatchPages = ref([]);
+    const pdfMatchUniquePagesNumber = ref<number[]>([]);
+    const pdfSearchDetails = ref<SearchDetails>({});
+
     const { pdf } = usePDF({
       url: pdfUrl.value,
     });
 
+    const updatePdf = (value: string) => {
+      const { pdf, pages, info } = usePDF(value);
+      pdfData.value = {
+        pdf,
+        pages,
+        info,
+      };
+    };
     watch(
       () => pdfUrl.value,
       (newValue) => {
-        const { pdf, pages, info } = usePDF(newValue);
-        pdfData.value = {
-          pdf,
-          pages,
-          info,
-        };
+        updatePdf(newValue);
       }
     );
 
@@ -107,6 +155,36 @@ export default defineComponent({
     const api_error = ref<string | null>(null);
     const api_response = ref<PdfDataQuery | null>(null);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateFilters = (phrase: string | number, pages: number[], value: boolean) => {
+      if (value === true) {
+        pages.forEach((page) => {
+          const entry: never = `${phrase}-${page}` as never;
+          // Ajout si l'entrée n'existe pas déjà
+          if (!pdfMatchPages.value.includes(entry)) {
+            pdfMatchPages.value.push(entry);
+          }
+        });
+      } else {
+        pages.forEach((page) => {
+          const entry = `${phrase}-${page}`;
+          // Suppression de l'entrée si elle existe
+          const index = pdfMatchPages.value.indexOf(entry as never);
+          if (index > -1) {
+            pdfMatchPages.value.splice(index, 1);
+          }
+        });
+      }
+      pdfMatchUniquePagesNumber.value = [];
+      pdfMatchPages.value.forEach((pageElement: string) => {
+        const pageIndex: number = parseInt(pageElement.split('-')[1]);
+        if (pdfMatchUniquePagesNumber.value.includes(pageIndex as never) === false) {
+          pdfMatchUniquePagesNumber.value.push(pageIndex);
+        }
+      });
+
+      updatePdf(pdfUrl.value);
+    };
     const loadPdf = async () => {
       try {
         api_error.value = null; // Reset error before fetch
@@ -135,6 +213,12 @@ export default defineComponent({
         })) as PdfDataQuery;
         console.log('received results');
         const pdf_data = api_response.value.datas;
+        pdfSearchDetails.value = api_response.value.details;
+
+        Object.entries(pdfSearchDetails.value).forEach(([key, detail]) => {
+          console.log('initialize filter for ' + key);
+          detail.filter = false;
+        });
 
         // Convertir le PDF encodé en base64 en Blob
         const byteCharacters = atob(pdf_data);
@@ -163,9 +247,13 @@ export default defineComponent({
 
     return {
       loadPdf,
+      updateFilters,
       api_response,
       api_error,
       keywords,
+      pdfSearchDetails,
+      pdfMatchUniquePagesNumber,
+      pdfMatchPages,
       pdfPage,
       pdfData,
       pdfUrl,

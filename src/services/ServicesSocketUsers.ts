@@ -1,5 +1,7 @@
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
 import { getApiSignedTokenRequest } from '../utils/api.utils';
+import { showLoader, hideLoader } from '../utils/loader.utils';
+
 import { ref, Ref } from 'vue';
 
 const authStore = useAuthStore();
@@ -31,6 +33,7 @@ export class WebSocketClient {
    */
   public async connect(): Promise<void> {
     try {
+      showLoader('connection');
       // Step 1: Fetch AWS credentials
       const awsCredentials = (await authStore.getAWSCredentials(false, false)) as AWSCredentials;
 
@@ -46,6 +49,7 @@ export class WebSocketClient {
 
       // Step 4: Set up WebSocket event listeners
       this.setupEventListeners();
+      hideLoader();
     } catch (error) {
       console.error('WebSocket connection failed', error);
       this.datas.value = this.datas.value + '<br>' + error + '<br>';
@@ -66,6 +70,7 @@ export class WebSocketClient {
 
     // When a message is received from the server
     this.socket.onmessage = (event: MessageEvent) => {
+      hideLoader();
       const data = JSON.parse(event.data);
       if (data.error) {
         this.error_message.value = data.error;
@@ -84,6 +89,7 @@ export class WebSocketClient {
 
     // When an error occurs in the WebSocket connection
     this.socket.onerror = (event: Event) => {
+      hideLoader();
       console.error('WebSocket encountered an error', event);
       this.currentState.value = 'ERROR';
       this.datas.value = this.datas.value + '<br>' + 'WebSocket encountered an error';
@@ -91,6 +97,7 @@ export class WebSocketClient {
 
     // When the connection is closed
     this.socket.onclose = () => {
+      hideLoader();
       this.currentState.value = 'CLOSED';
       console.log('WebSocket connection closed');
       this.datas.value = this.datas.value + '<br>' + 'WebSocket connection closed';
@@ -104,6 +111,7 @@ export class WebSocketClient {
 
   public sendMessage(message: WebSocketOutMessage): void {
     if (this.socket.readyState === WebSocket.OPEN) {
+      showLoader('réveil de Legalnet');
       this.datas.value = '';
       this.socket.send(JSON.stringify(message));
       console.log('Message sent:', message);

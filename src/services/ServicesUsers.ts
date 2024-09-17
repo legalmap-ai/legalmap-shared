@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getApiConfig, QueryError } from '../utils/api.utils';
 import { getApiSignedTokenRequest } from '../utils/api.utils';
 import { AWSCredentials, useAuthStore } from '../stores/store-auth';
+import { showLoader, hideLoader } from '../utils/loader.utils';
 
 export interface QueryTest {
   index: number;
@@ -21,11 +22,11 @@ const authStore = useAuthStore();
  * @throws Will throw an error if the API request fails, with the error details logged to the console.
  */
 export async function invokeApi(selected_query: QueryTest) {
+  showLoader('Récupération et traitement du PDF');
   const awsCredentials = (await authStore.getAWSCredentials(
     selected_query.forceRefreshToken,
     false
   )) as AWSCredentials;
-
   const signedQuery = await getApiSignedTokenRequest(
     selected_query.method,
     '/' + getApiConfig().environment + selected_query.path,
@@ -53,8 +54,10 @@ export async function invokeApi(selected_query: QueryTest) {
         headers: signedQuery.headers,
       });
     }
+    hideLoader();
     return response.data ? response.data : response;
   } catch (error) {
+    hideLoader();
     // Log an error message if the API call fails and rethrow the error
     console.error(
       'API call failed',
