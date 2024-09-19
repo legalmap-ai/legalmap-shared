@@ -1,0 +1,3 @@
+[submodule "src/@legalmap-shared"]
+	path = src/@legalmap-shared
+	url = https://github.com/legalmap-ai/legalmap-shared.git

@@ -93,13 +93,12 @@ export default defineComponent({
 
     const handleUpdateProfile = async () => {
       try {
-        console.log(JSON.stringify(localProfile.value));
         error.value = null;
         loading.value = true;
         await invokeApi({
           index: 4,
           method: 'PUT',
-          path: '/me/profile',
+          path: '/users/' + localProfile.value.id,
           parameters: {
             ...localProfile.value,
           },

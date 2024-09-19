@@ -36,7 +36,7 @@ if (process.env.DEV) {
 // Define Pinia store for user management
 export const useAuthStore = defineStore('user', () => {
   const user = ref<null | GetCurrentUserOutput>(null); // Stores the current user
-  const authStatus = ref<'authenticated' | 'unauthenticated'>('unauthenticated'); // Authentication status
+  const authStatus = ref<'authenticated' | 'unauthenticated' | 'loading'>('unauthenticated'); // Authentication status
   const router = useRouter(); // Router for navigation
 
   /**
@@ -104,6 +104,7 @@ export const useAuthStore = defineStore('user', () => {
       const session = await fetchAuthSession({ forceRefresh: forceRefresh }); // Fetches the authentication session
       return session?.tokens?.accessToken?.toString() || null;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   };
@@ -176,6 +177,11 @@ export const useAuthStore = defineStore('user', () => {
     }
   };
 
+  const getUserId = async (): Promise<string> => {
+    const session = await fetchAuthSession();
+    return session.userSub || '';
+  };
+
   /**
    * Retrieves the user cognito groups from the current session.
    * @param {boolean} [forceRefresh=false] - Optional. If set to true, forces a refresh of the authentication session.
@@ -201,6 +207,9 @@ export const useAuthStore = defineStore('user', () => {
         username,
         password,
       });
+
+      console.log(Amplify);
+
       setUser();
 
       authStatus.value = 'authenticated';
@@ -265,12 +274,12 @@ export const useAuthStore = defineStore('user', () => {
    */
   const setUser = async (): Promise<GetCurrentUserOutput> => {
     try {
-      const currentUser = (await getCurrentUser()) as GetCurrentUserOutput; // Retrieves the current user
+      const currentUser = (await getCurrentUser()) as GetCurrentUserOutput;
       user.value = currentUser;
       authStatus.value = 'authenticated';
       return currentUser;
     } catch (error) {
-      authStatus.value = 'unauthenticated';
+      resetUser();
       throw error;
     }
   };
@@ -284,6 +293,31 @@ export const useAuthStore = defineStore('user', () => {
       authStatus.value = 'unauthenticated';
     } catch (error) {
       throw error;
+    }
+  };
+
+  const checkAuthStatus = async (): Promise<boolean> => {
+    try {
+      const session = await fetchAuthSession();
+      if (session.tokens?.accessToken) {
+        await setUser();
+        return true;
+      } else {
+        resetUser();
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      resetUser();
+      return false;
+    }
+  };
+
+  const redirectIfNotLoggedIn = async () => {
+    authStatus.value = 'loading';
+    const isLoggedIn = await checkAuthStatus();
+    if (!isLoggedIn) {
+      router.push('/login');
     }
   };
 
@@ -304,8 +338,11 @@ export const useAuthStore = defineStore('user', () => {
     getClientId,
     getAccessToken,
     getAWSCredentials,
+    getUserId,
     getLoginId,
     getAuthTime,
     getAuthTimeDate,
+    redirectIfNotLoggedIn,
+    checkAuthStatus,
   };
 });

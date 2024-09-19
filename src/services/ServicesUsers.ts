@@ -8,7 +8,7 @@ export interface QueryTest {
   index: number;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'error';
   path: string;
-  parameters: string | { [key: string]: unknown };
+  parameters: string | { [key: string]: unknown } | undefined;
   useQueryString: boolean;
   forceRefreshToken: boolean;
 }

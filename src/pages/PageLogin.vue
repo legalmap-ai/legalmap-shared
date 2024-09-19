@@ -20,7 +20,10 @@
         class="input"
         label="Mot de passe"
       />
-      <BaseButton style="width: 100%" type="submit">Se connecter</BaseButton>
+      <BaseButton style="width: 100%" type="submit">
+        <q-spinner-oval v-if="loading" color="white" size="1em" />
+        {{ loading ? 'Chargement...' : 'Se connecter' }}
+      </BaseButton>
       <router-link to="/reset" class="forgot"> Mot de passe oublié ? </router-link>
       <div class="have-account">
         Pas encore de compte ?
@@ -47,8 +50,12 @@ const username = ref('abedoyere@gmail.com');
 const password = ref('Arnaud_1234');
 const isAuthenticated = authStore.isAuthenticated;
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
+  loading.value = true;
   await authStore.login(username.value, password.value);
+  loading.value = false;
 };
 
 if (isAuthenticated) {

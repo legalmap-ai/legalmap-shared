@@ -11,7 +11,10 @@
         class="input"
         label="Email"
       />
-      <BaseButton style="width: 100%" type="submit">Réinitialiser</BaseButton>
+      <BaseButton style="width: 100%" type="submit">
+        <q-spinner-oval v-if="loading" color="white" size="1em" />
+        {{ loading ? 'Chargement...' : 'Envoyer le code' }}
+      </BaseButton>
       <div class="have-account">
         Pas encore de compte ?
         <router-link to="/register">Créez-en un</router-link>
@@ -42,9 +45,10 @@
         class="input"
         label="Nouveau mot de passe"
       />
-      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
-        >Réinitialiser</BaseButton
-      >
+      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password">
+        <q-spinner-oval v-if="loading" color="white" size="1em" />
+        {{ loading ? 'Chargement...' : 'Confirmer' }}
+      </BaseButton>
       <a class="forgot q-pb-md" @click="handleSubmit">Renvoyer le code</a>
     </form>
   </div>
@@ -91,8 +95,11 @@ const code = ref('');
 const password = ref('');
 const askCode = ref(false);
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
   try {
+    loading.value = true;
     const res = await resetPassword({
       username: username.value,
     });
@@ -100,11 +107,14 @@ const handleSubmit = async () => {
     askCode.value = true;
   } catch (error) {
     console.error(error);
+  } finally {
+    loading.value = false;
   }
 };
 
 const handleReset = async () => {
   try {
+    loading.value = true;
     await confirmResetPassword({
       username: username.value,
       confirmationCode: code.value,
@@ -124,6 +134,8 @@ const handleReset = async () => {
       color: 'negative',
       position: 'top',
     });
+  } finally {
+    loading.value = false;
   }
 };
 

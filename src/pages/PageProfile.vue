@@ -98,7 +98,7 @@
 <script lang="ts">
 import { QueryError } from '../utils/api.utils';
 import { useAuthStore } from '../stores/store-auth';
-import { Ref, defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, Ref, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
 import { Profile } from 'src/types/profile';
 import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
@@ -120,6 +120,20 @@ export default defineComponent({
     const user_groups = ref<[string] | []>([]);
     const auth_time = ref<number | null>(null);
     const auth_time_date = ref<string | null>(null);
+    const profileId = ref<string>('');
+
+    const profile = ref({
+      email: 'abedoyere@gmail.com',
+      given_name: 'Arnaud',
+      family_name: 'de La Bédoyère',
+    }) as Ref<Profile>;
+
+    const password_dict = ref({
+      current_password: '',
+      new_password: '',
+      confirm_new_password: '',
+    });
+
     onMounted(() => {
       getUserState();
     });
@@ -131,6 +145,14 @@ export default defineComponent({
         auth_time.value = await authStore.getAuthTime();
         auth_time_date.value = await authStore.getAuthTimeDate();
         user_groups.value = await authStore.getGroups();
+        profileId.value = await authStore.getUserId();
+
+        profile.value = {
+          id: profileId.value,
+          email: 'abedoyere@gmail.com',
+          given_name: 'Arnaud',
+          family_name: 'de La Bédoyère',
+        } as Profile;
       } catch (error) {
         error_message.value = translateError(error as QueryError);
         access_token.value = null;
@@ -149,18 +171,6 @@ export default defineComponent({
     // const getMoreInformation = async () => {
     //   console.log(await UsersService.getAuthenticatedUser());
     // };
-
-    const profile = ref({
-      email: 'abedoyere@gmail.com',
-      given_name: 'Arnaud',
-      family_name: 'de La Bédoyère',
-    }) as Ref<Profile>;
-
-    const password_dict = ref({
-      current_password: '',
-      new_password: '',
-      confirm_new_password: '',
-    });
 
     // const handleSubscribe = () => {
     //   usersService.subscribeToPlan();

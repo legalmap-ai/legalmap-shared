@@ -60,7 +60,8 @@
         type="submit"
         :disabled="!!passwordError || !!password2Error || !password || !password2"
       >
-        S'inscrire
+        <q-spinner-oval v-if="loading" color="white" size="1em" />
+        {{ loading ? 'Chargement...' : "S'inscrire" }}
       </BaseButton>
       <div class="have-account">
         Déjà inscrit ?
@@ -80,9 +81,10 @@
         label="Code de vérification"
       />
 
-      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password"
-        >Réinitialiser</BaseButton
-      >
+      <BaseButton style="width: 100%" type="submit" :disabled="!!passwordError || !password">
+        <q-spinner-oval v-if="loading" color="white" size="1em" />
+        {{ loading ? 'Chargement...' : 'Valider' }}
+      </BaseButton>
       <a class="forgot q-pb-md" @click="handleAskCode">Renvoyer le code</a>
     </form>
   </div>
@@ -129,8 +131,11 @@ const password = ref('Arnaud_1234');
 const password2 = ref('Arnaud_1234');
 const askCode = ref(false);
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
   try {
+    loading.value = true;
     //https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html
     const res = await signUp({
       username: username.value,
@@ -157,11 +162,14 @@ const handleSubmit = async () => {
       color: 'negative',
       position: 'top',
     });
+  } finally {
+    loading.value = false;
   }
 };
 
 const handleValidate = async () => {
   try {
+    loading.value = true;
     await confirmSignUp({
       username: username.value,
       confirmationCode: code.value,
@@ -180,6 +188,8 @@ const handleValidate = async () => {
       color: 'negative',
       position: 'top',
     });
+  } finally {
+    loading.value = false;
   }
 };
 
