@@ -79,10 +79,12 @@ export const getApiConfig = (): { protocol: string; endpoint: string; environmen
   if (process.env.DEV) {
     //api_endpoint = awsconfigDev.aws_cloud_logic_custom[0].endpoint;
     //api_endpoint = 'http://127.0.0.1:3000/dev'; // For development only with sam
-    api_endpoint = 'https://bfjhijp599.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam
+    api_endpoint = 'https://bfjhijp599.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam -> Testing Pdfs for arnaud
+    api_endpoint = 'https://gkm52eoko9.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam -> Testing Users for Matteo
   } else {
     //api_endpoint = awsconfigMaster.aws_cloud_logic_custom[0].endpoint;
-    api_endpoint = 'https://lscadm8k8j.execute-api.eu-west-3.amazonaws.com/dev';
+    api_endpoint = 'https://bfjhijp599.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam -> Testing Pdfs for arnaud
+    api_endpoint = 'https://gkm52eoko9.execute-api.eu-west-3.amazonaws.com/dev'; // For development only with sam -> Testing Users for Matteo
   }
 
   // Split the URL to extract the protocol, endpoint, and environment

@@ -84,7 +84,7 @@ import { ref, computed, onMounted, defineComponent } from 'vue';
 import { Notify, QTableColumn } from 'quasar';
 import { invokeApi } from '../services/ServicesUsers';
 import { useAuthStore } from '../stores/store-auth';
-import { useRouter } from 'vue-router';
+// import { useRouter } from 'vue-router';
 
 interface Client {
   id: number;
@@ -120,31 +120,32 @@ export default defineComponent({
     const search = ref('');
     const loading = ref(false);
     const clients = ref<Client[]>([]);
-    const router = useRouter();
+    // const router = useRouter();
 
     const fetchClients = async () => {
       loading.value = true;
       try {
-        const response = JSON.parse(
-          (
-            await invokeApi({
-              index: 1,
-              method: 'GET',
-              path: '/users',
-              parameters: '',
-              useQueryString: true,
-              forceRefreshToken: false,
-            })
-          ).body
-        );
+        const response = await invokeApi({
+          index: 1,
+          method: 'GET',
+          path: '/users',
+          parameters: '',
+          useQueryString: true,
+          forceRefreshToken: false,
+        });
 
-        if (response && Array.isArray(response.users)) {
-          clients.value = response.users;
-        } else {
-          console.error('Invalid response format:', response);
-        }
+        Notify.create({
+          message: 'Succes !',
+          color: 'positive',
+        });
+        console.log(response);
+        // if (response && Array.isArray(response.users)) {
+        //   clients.value = response.users;
+        // } else {
+        //   console.error('Invalid response format:', response);
+        // }
       } catch (error) {
-        router.push('/');
+        //router.push('/');
         Notify.create({
           message: "Vous n'avez pas les droits pour accéder à cette page",
           color: 'negative',

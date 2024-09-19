@@ -87,6 +87,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'http',
     link: 'services-pdfs',
   },
+  {
+    title: 'Page Clients',
+    caption: 'LegalMap Client Page test',
+    icon: 'http',
+    link: 'clients',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

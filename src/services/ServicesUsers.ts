@@ -22,7 +22,7 @@ const authStore = useAuthStore();
  * @throws Will throw an error if the API request fails, with the error details logged to the console.
  */
 export async function invokeApi(selected_query: QueryTest) {
-  showLoader('Récupération et traitement du PDF');
+  showLoader('Requête en cours');
   const awsCredentials = (await authStore.getAWSCredentials(
     selected_query.forceRefreshToken,
     false
