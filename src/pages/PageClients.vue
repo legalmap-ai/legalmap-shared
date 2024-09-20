@@ -134,16 +134,11 @@ export default defineComponent({
           forceRefreshToken: false,
         });
 
-        Notify.create({
-          message: 'Succes !',
-          color: 'positive',
-        });
-        console.log(response);
-        // if (response && Array.isArray(response.users)) {
-        //   clients.value = response.users;
-        // } else {
-        //   console.error('Invalid response format:', response);
-        // }
+        if (response && Array.isArray(response.users)) {
+          clients.value = response.users;
+        } else {
+          console.error('Invalid response format:', response);
+        }
       } catch (error) {
         //router.push('/');
         Notify.create({
