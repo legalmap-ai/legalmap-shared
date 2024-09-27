@@ -9,7 +9,13 @@
         <q-list class="row">
           <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
             <q-item-section>
-              <q-input color="black" dense v-model="localProfile.email" label="Email Address" />
+              <q-input
+                disable
+                color="black"
+                dense
+                v-model="localProfile.email"
+                label="Email Address"
+              />
             </q-item-section>
           </q-item>
           <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -57,6 +63,9 @@
         <q-btn class="bg-info text-white" @click="handleUpdateProfile" :disabled="loading">
           {{ loading ? 'Chargement...' : 'Mettre à jour' }}
         </q-btn>
+        <q-btn class="bg-negative text-white" @click="handleDeleteProfile" :disabled="loading">
+          {{ loading ? 'Chargement...' : 'Supprimer mon compte' }}
+        </q-btn>
       </q-card-actions>
     </q-card>
   </div>
@@ -64,12 +73,13 @@
 
 <script lang="ts">
 import { AxiosError } from 'axios';
-import { Notify } from 'quasar';
+import { Dialog, Notify } from 'quasar';
 import { invokeApi } from 'src/services/ServicesUsers';
 import { Profile } from 'src/types/profile';
 import { QueryError } from 'src/utils/api.utils';
 import { translateError } from 'src/utils/errors.utils';
 import { Ref, defineComponent, ref, watch } from 'vue';
+import { useAuthStore } from '../stores/store-auth';
 
 export default defineComponent({
   props: {
@@ -83,6 +93,7 @@ export default defineComponent({
     let error = ref<string | null>(null);
     let loading = ref<boolean>(false);
     const localProfile = ref({ ...props.profile }) as Ref<Profile>;
+    const authStore = useAuthStore();
 
     watch(
       () => props.profile,
@@ -98,7 +109,7 @@ export default defineComponent({
         await invokeApi({
           index: 4,
           method: 'PUT',
-          path: '/users/' + localProfile.value.id,
+          path: '/users/me',
           parameters: {
             ...localProfile.value,
           },
@@ -133,11 +144,61 @@ export default defineComponent({
       }
     };
 
+    const handleDeleteProfile = async () => {
+      Dialog.create({
+        title: 'Supprimer mon compte',
+        message: 'Êtes-vous sûr de vouloir supprimer votre compte ?',
+        persistent: true,
+        ok: {
+          label: 'Oui',
+          color: 'negative',
+        },
+        cancel: {
+          label: 'Non',
+          color: 'info',
+        },
+      }).onOk(async () => {
+        try {
+          error.value = null;
+          loading.value = true;
+          await invokeApi({
+            index: 4,
+            method: 'DELETE',
+            path: '/users/me',
+            parameters: undefined,
+            useQueryString: false,
+            forceRefreshToken: true,
+          });
+          Notify.create({
+            message: 'Votre profil a été supprimé',
+            color: 'positive',
+          });
+
+          authStore.logOut();
+        } catch (err: unknown) {
+          if (err instanceof AxiosError) {
+            Notify.create({
+              message: translateError(err as QueryError),
+              color: 'negative',
+            });
+          } else {
+            Notify.create({
+              message: 'Une erreur est survenue',
+              color: 'negative',
+            });
+          }
+        } finally {
+          loading.value = false;
+        }
+      });
+    };
+
     return {
       error,
       loading,
       localProfile,
       handleUpdateProfile,
+      handleDeleteProfile,
     };
   },
 });

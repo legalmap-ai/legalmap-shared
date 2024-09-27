@@ -93,6 +93,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'http',
     link: 'clients',
   },
+  {
+    title: 'Page Organizations',
+    caption: 'LegalMap Organization Page test',
+    icon: 'corporate_fare',
+    link: 'organizations',
+  },
 ];
 
 const leftDrawerOpen = ref(false);
