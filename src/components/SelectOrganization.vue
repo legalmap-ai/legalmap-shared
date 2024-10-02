@@ -1,6 +1,7 @@
 <template>
   <div>
     <q-select
+      dark
       style="width: 200px"
       v-model="selectedOrganization"
       :options="organizations"
@@ -71,7 +72,7 @@ export default defineComponent({
         forceRefreshToken: false,
       });
 
-      console.log(response);
+      window.location.reload();
     };
 
     return {
