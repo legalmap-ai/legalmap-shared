@@ -130,9 +130,9 @@ import { QueryError } from '../utils/api.utils';
 import { useAuthStore } from '../stores/store-auth';
 import { computed, defineComponent, onMounted, Ref, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
-import { Profile } from 'src/types/profile';
+import { Profile } from '../types/profile';
 import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
-import { invokeApi } from 'src/services/ServicesUsers';
+import { invokeApi } from '../services/ServicesUsers';
 
 interface Invoice {
   id: string;

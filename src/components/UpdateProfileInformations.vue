@@ -74,10 +74,10 @@
 <script lang="ts">
 import { AxiosError } from 'axios';
 import { Dialog, Notify } from 'quasar';
-import { invokeApi } from 'src/services/ServicesUsers';
-import { Profile } from 'src/types/profile';
-import { QueryError } from 'src/utils/api.utils';
-import { translateError } from 'src/utils/errors.utils';
+import { invokeApi } from '../services/ServicesUsers';
+import { Profile } from '../types/profile';
+import { QueryError } from '../utils/api.utils';
+import { translateError } from '../utils/errors.utils';
 import { Ref, defineComponent, ref, watch } from 'vue';
 import { useAuthStore } from '../stores/store-auth';
 

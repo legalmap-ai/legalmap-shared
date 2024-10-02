@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import BaseButton from '../components/BaseButton.vue';
-import { invokeApi } from 'src/services/ServicesUsers';
+import { invokeApi } from '../services/ServicesUsers';
 import { Notify } from 'quasar';
 
 export default defineComponent({

@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import BaseButton from 'src/components/BaseButton.vue';
-import { invokeApi } from 'src/services/ServicesUsers';
+import BaseButton from '../components/BaseButton.vue';
+import { invokeApi } from '../services/ServicesUsers';
 import { defineComponent, ref } from 'vue';
 import SelectOrganization from '../components/SelectOrganization.vue';
 

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { invokeApi } from 'src/services/ServicesUsers';
+import { invokeApi } from '../services/ServicesUsers';
 import { defineComponent, onMounted, ref } from 'vue';
 
 interface Organization {
