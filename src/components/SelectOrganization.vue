@@ -61,7 +61,7 @@ export default defineComponent({
     });
 
     const handleOrganizationChange = async (value: string) => {
-      const response = await invokeApi({
+      await invokeApi({
         index: 1,
         method: 'PUT',
         path: '/organizations/active',
