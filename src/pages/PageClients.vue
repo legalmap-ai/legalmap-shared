@@ -231,7 +231,7 @@ import { Notify, QTableColumn } from 'quasar';
 import { invokeApi } from '../services/ServicesUsers';
 import { useAuthStore } from '../stores/store-auth';
 import { useRouter } from 'vue-router';
-import BaseButton from './BaseButton.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 interface Subscription {
   active: boolean;
