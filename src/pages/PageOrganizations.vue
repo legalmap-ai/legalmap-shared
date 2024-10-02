@@ -2,7 +2,11 @@
   <q-page padding>
     <h1 class="text-h4 q-mb-md">Les organisations</h1>
 
-    <div class="flex q-gutter-md">
+    <div class="flex q-gutter-md items-center">
+      <SelectOrganization />
+    </div>
+
+    <div class="flex q-gutter-md q-mt-md">
       <q-input outlined v-model="organization_name" label="Nom" dense />
       <BaseButton @click="handleCreate">Créer</BaseButton>
     </div>
@@ -13,10 +17,12 @@
 import BaseButton from 'src/components/BaseButton.vue';
 import { invokeApi } from 'src/services/ServicesUsers';
 import { defineComponent, ref } from 'vue';
+import SelectOrganization from '../components/SelectOrganization.vue';
 
 export default defineComponent({
   components: {
     BaseButton,
+    SelectOrganization,
   },
   name: 'LegalmapOrganizations',
   props: {},
@@ -47,7 +53,5 @@ export default defineComponent({
       handleCreate,
     };
   },
-
-  mounted() {},
 });
 </script>

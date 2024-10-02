@@ -88,6 +88,36 @@
             <q-btn class="text-capitalize bg-info text-white">Change Password</q-btn>
           </q-card-actions>
         </q-card>
+
+        <q-card class="card-bg no-shadow q-mt-sm" bordered>
+          <q-card-section class="text-h6 q-pa-sm">
+            <div class="text-h6">Mes factures</div>
+            <q-list bordered separator class="q-mt-md">
+              <q-item
+                clickable
+                v-ripple
+                v-for="subscription in subscriptions"
+                :key="subscription.id"
+              >
+                <q-item-section>
+                  <q-item-label
+                    >Facture {{ subscription.plan }}
+                    <span class="text-caption"> ({{ formatDate(subscription.startDate) }})</span>
+                  </q-item-label>
+                  <q-item-label
+                    caption
+                    @click="handleDownloadInvoice(subscription.invoice_details.invoice_pdf)"
+                    >Cliquez pour télécharger</q-item-label
+                  >
+                </q-item-section>
+
+                <q-item-section side>
+                  <q-item-label caption>{{ (subscription.price / 100).toFixed(2) }} €</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+        </q-card>
       </div>
     </div>
   </q-page>
@@ -98,10 +128,28 @@
 <script lang="ts">
 import { QueryError } from '../utils/api.utils';
 import { useAuthStore } from '../stores/store-auth';
-import { defineComponent, onMounted, Ref, ref } from 'vue';
+import { computed, defineComponent, onMounted, Ref, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
 import { Profile } from 'src/types/profile';
 import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
+import { invokeApi } from 'src/services/ServicesUsers';
+
+interface Invoice {
+  id: string;
+  invoice_pdf: string;
+}
+
+interface Subscription {
+  id: string;
+  invoice: string;
+  active: boolean;
+  endDate: string;
+  startDate: string;
+  invoice_details: Invoice;
+  plan: string;
+  price: number;
+  subscription: string;
+}
 
 export default defineComponent({
   components: {
@@ -134,8 +182,11 @@ export default defineComponent({
       confirm_new_password: '',
     });
 
+    const subscriptions = ref(null) as Ref<Subscription[] | null>;
+
     onMounted(() => {
       getUserState();
+      getSubscriptions();
     });
 
     const getUserState = async () => {
@@ -159,6 +210,29 @@ export default defineComponent({
       }
     };
 
+    const getSubscriptions = async () => {
+      const subscriptionsFetch = (
+        await invokeApi({
+          index: 1,
+          method: 'GET',
+          path: '/invoices/me',
+          parameters: {},
+          useQueryString: false,
+          forceRefreshToken: false,
+        })
+      ).data as Subscription[];
+
+      subscriptions.value = subscriptionsFetch;
+    };
+
+    const handleDownloadInvoice = async (invoice_pdf: string) => {
+      try {
+        window.location.href = invoice_pdf;
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const logOut = async () => {
       try {
         const res = await authStore.logOut();
@@ -168,13 +242,12 @@ export default defineComponent({
         console.error(error);
       }
     };
-    // const getMoreInformation = async () => {
-    //   console.log(await UsersService.getAuthenticatedUser());
-    // };
 
-    // const handleSubscribe = () => {
-    //   usersService.subscribeToPlan();
-    // };
+    const formatDate = computed(() => (date: string) => {
+      const dateObj = new Date(date);
+      return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+    });
+
     return {
       error_message,
       error_update_message,
@@ -183,10 +256,14 @@ export default defineComponent({
       login_id,
       auth_time,
       auth_time_date,
+      subscriptions,
+      getSubscriptions,
       logOut,
+      handleDownloadInvoice,
       authStore,
       profile,
       password_dict,
+      formatDate,
     };
   },
 });
