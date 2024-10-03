@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   signIn,
   signOut,
+  updatePassword,
 } from '@aws-amplify/auth';
 
 import { Notify } from 'quasar';
@@ -268,6 +269,16 @@ export const useAuthStore = defineStore('user', () => {
     }
   };
 
+  const resetPasswordUser = async (oldPassword: string, newPassword: string) => {
+    await updatePassword({ oldPassword, newPassword });
+    Notify.create({
+      message: 'Votre mot de passe a été modifié',
+      color: 'positive',
+      position: 'top',
+    });
+    logOut();
+  };
+
   /**
    * set the current user from amplify current user.
    * @returns {Promise<any>} A promise that resolves with the current user
@@ -344,5 +355,6 @@ export const useAuthStore = defineStore('user', () => {
     getAuthTimeDate,
     redirectIfNotLoggedIn,
     checkAuthStatus,
+    resetPasswordUser,
   };
 });

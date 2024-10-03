@@ -39,7 +39,6 @@
               <q-item-section>
                 <q-input
                   type="password"
-                  dark
                   dense
                   outlined
                   color="white"
@@ -56,7 +55,6 @@
               <q-item-section>
                 <q-input
                   type="password"
-                  dark
                   dense
                   outlined
                   color="white"
@@ -73,7 +71,6 @@
               <q-item-section>
                 <q-input
                   type="password"
-                  dark
                   dense
                   outlined
                   round
@@ -84,8 +81,15 @@
               </q-item-section>
             </q-item>
           </q-card-section>
+
+          <q-card-section v-if="error_update_message" class="text-negative">
+            Erreur: {{ error_update_message }}
+          </q-card-section>
+
           <q-card-actions align="right">
-            <q-btn class="text-capitalize bg-info text-white">Change Password</q-btn>
+            <q-btn class="text-capitalize bg-info text-white" @click="handleResetPassword"
+              >Changer mon mot de passe</q-btn
+            >
           </q-card-actions>
         </q-card>
 
@@ -130,6 +134,7 @@ import { translateError } from '../utils/errors.utils';
 import { Profile } from '../types/profile';
 import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
 import { invokeApi } from '../services/ServicesUsers';
+import { isValidPassword } from 'src/utils/accounts.util';
 
 interface Invoice {
   id: string;
@@ -240,6 +245,27 @@ export default defineComponent({
       }
     };
 
+    const handleResetPassword = async () => {
+      try {
+        if (isValidPassword(password_dict.value.new_password) !== '') {
+          error_update_message.value = isValidPassword(password_dict.value.new_password);
+          return;
+        }
+
+        if (password_dict.value.new_password !== password_dict.value.confirm_new_password) {
+          error_update_message.value = 'Les mots de passe ne correspondent pas';
+          return;
+        }
+
+        await authStore.resetPasswordUser(
+          password_dict.value.current_password,
+          password_dict.value.new_password
+        );
+      } catch (error) {
+        error_update_message.value = 'Votre mot de passe actuel est incorrect';
+      }
+    };
+
     const formatDate = computed(() => (date: string) => {
       const dateObj = new Date(date);
       return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
@@ -261,6 +287,7 @@ export default defineComponent({
       profile,
       password_dict,
       formatDate,
+      handleResetPassword,
     };
   },
 });
