@@ -88,6 +88,42 @@
           <q-banner dense color="grey-2"> Aucun abonnement en cours. </q-banner>
         </q-card-section>
       </q-card>
+
+      <q-card>
+        <q-card-section>
+          <q-card class="card-bg no-shadow q-mt-sm" bordered>
+            <q-card-section class="text-h6 q-pa-sm">
+              <div class="text-h6">Mes factures</div>
+              <q-list bordered separator class="q-mt-md">
+                <q-item
+                  clickable
+                  v-ripple
+                  v-for="subscription in subscriptions"
+                  :key="subscription._id"
+                >
+                  <q-item-section>
+                    <q-item-label
+                      >Facture {{ subscription.plan }}
+                      <span class="text-caption"> ({{ formatDate(subscription.startDate) }})</span>
+                    </q-item-label>
+                    <q-item-label
+                      caption
+                      @click="handleDownloadInvoice(subscription.invoice_details.invoice_pdf)"
+                      >Cliquez pour télécharger</q-item-label
+                    >
+                  </q-item-section>
+
+                  <q-item-section side>
+                    <q-item-label caption
+                      >{{ (subscription.price / 100).toFixed(2) }} €</q-item-label
+                    >
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </q-card-section>
+      </q-card>
     </div>
 
     <!-- Message si aucune organisation n'est trouvée -->
@@ -117,6 +153,10 @@ interface Subscription {
   price: number;
   seats: number;
   subscription: string;
+  invoice_details: {
+    id: string;
+    invoice_pdf: string;
+  };
 }
 
 interface Organization {
@@ -289,8 +329,34 @@ export default defineComponent({
       }
     };
 
+    const subscriptions = ref<Subscription[]>([]);
+
+    const getSubscriptions = async () => {
+      const subscriptionsFetch = (
+        await invokeApi({
+          index: 1,
+          method: 'GET',
+          path: '/invoices/me',
+          parameters: {},
+          useQueryString: false,
+          forceRefreshToken: false,
+        })
+      ).data as Subscription[];
+
+      subscriptions.value = subscriptionsFetch;
+    };
+
+    const handleDownloadInvoice = async (invoice_pdf: string) => {
+      try {
+        window.location.href = invoice_pdf;
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     onMounted(() => {
       fetchOrganization();
+      getSubscriptions();
     });
 
     return {
@@ -306,6 +372,8 @@ export default defineComponent({
       isLoading,
       isSaving,
       isValidEmail,
+      handleDownloadInvoice,
+      subscriptions,
     };
   },
 });

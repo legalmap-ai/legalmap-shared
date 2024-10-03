@@ -92,7 +92,7 @@
 
             <div class="q-pt-md">
               <div class="flex items-center q-gutter-sm">
-                <div class="text-bold q-mb-md">Abonnement en cours</div>
+                <div class="text-bold q-mb-md">Abonnements en cours</div>
               </div>
               <div class="q-mb-md text-grey-8 text-caption" v-if="!editedSubscription.length">
                 Ce compte n'a pas d'abonnement en cours.
@@ -351,7 +351,9 @@ export default defineComponent({
       // Formate les dates
       editedSubscription.value.forEach((sub) => {
         sub.startDate = sub.startDate.split('T')[0];
+        sub.startDate = sub.startDate.split(' ')[0];
         sub.endDate = sub.endDate.split('T')[0];
+        sub.endDate = sub.endDate.split(' ')[0];
       });
 
       organizationDialog.value = {

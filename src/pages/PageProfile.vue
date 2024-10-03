@@ -92,33 +92,6 @@
             >
           </q-card-actions>
         </q-card>
-
-        <!-- <q-card class="card-bg no-shadow q-mt-sm" bordered>
-          <q-card-section class="text-h6 q-pa-sm">
-            <div class="text-h6">Mes factures</div>
-            <q-list bordered separator class="q-mt-md">
-              subscription in subscriptions
-              <q-item clickable v-ripple v-for="subscription in 3" :key="subscription.id">
-                <q-item-section>
-                  <q-item-label
-                    >Facture {{ subscription.plan }}
-                    <span class="text-caption"> ({{ formatDate(subscription.startDate) }})</span>
-                  </q-item-label>
-                  <q-item-label
-                    caption
-                    @click="handleDownloadInvoice(subscription.invoice_details.invoice_pdf)"
-                    >Cliquez pour télécharger</q-item-label
-                  >
-                </q-item-section>
-
-                <q-item-section side>
-                  <q-item-label caption>{{ (subscription.price / 100).toFixed(2) }} €</q-item-label>
-                </q-item-section>
-              </q-item>
-
-            </q-list>
-          </q-card-section>
-        </q-card> -->
       </div>
     </div>
   </q-page>
