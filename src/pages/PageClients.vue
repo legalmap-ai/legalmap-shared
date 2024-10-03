@@ -21,12 +21,6 @@
         <q-btn color="primary" icon="add" label="Nouveau Client" @click="openAddClientDialog" />
       </template>
 
-      <template v-slot:body-cell-subscription="props">
-        <q-td :props="props">
-          {{ props.row.subscription?.plan }}
-        </q-td>
-      </template>
-
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn flat round color="warning" icon="edit" @click="editClient(props.row)" />
@@ -351,13 +345,7 @@ export default defineComponent({
         sortable: true,
       },
       { name: 'email', align: 'left', label: 'Email', field: 'email', sortable: true },
-      {
-        name: 'subscription',
-        align: 'left',
-        label: 'Statut Abonnement',
-        field: 'subscription',
-        sortable: true,
-      },
+
       { name: 'actions', align: 'center', label: 'Actions', field: 'actions' },
     ];
 

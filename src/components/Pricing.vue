@@ -1,28 +1,22 @@
 <template>
   <div class="pricing" id="pricing">
     <h2 class="pricing__title">
-      W<span>A</span>TCH: <br>
+      W<span>A</span>TCH: <br />
       Une offre adaptée à votre activité
     </h2>
-    <h3 class="pricing__subtitle">
-      Économisez jusqu’à 25% avec l’offre annuelle
-    </h3>
+    <h3 class="pricing__subtitle">Économisez jusqu’à 25% avec l’offre annuelle</h3>
 
     <div class="pricing__billplan">
-      <span :class="{ active: !annual }" @click="annual = false">
-        Tarif mensuel
-      </span>
+      <span :class="{ active: !annual }" @click="annual = false"> Tarif mensuel </span>
       <q-toggle color="blue" v-model="annual" />
-      <span :class="{ active: annual }" @click="annual = true">
-        Tarif annuel
-      </span>
+      <span :class="{ active: annual }" @click="annual = true"> Tarif annuel </span>
     </div>
 
     <div class="cards">
       <div class="card">
         <div class="card__title">Starter</div>
-        <div style="flex: 1;"></div>
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
+        <div style="flex: 1"></div>
 
         <div>
           <div class="card__price">
@@ -30,65 +24,82 @@
               <template v-if="annual">336€</template>
               <template v-else>34.90€</template>
             </span>
-            <span style="cursor: pointer" @click="annual = !annual">/
+            <span style="cursor: pointer" @click="annual = !annual"
+              >/
               <template v-if="annual">an</template>
               <template v-else>mois</template>
             </span>
           </div>
-          <div class="card__price--detail" v-if="!annual">
-            &nbsp;
-          </div>
-          <div class="card__price--detail q-mt-sm" v-else>
-            soit 29€ / mois / utilisateur
-          </div>
+          <div class="card__price--detail" v-if="!annual">&nbsp;</div>
+          <div class="card__price--detail q-mt-sm" v-else>soit 29€ / mois / utilisateur</div>
         </div>
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
 
-
-        <BaseButton id="section-pricing-subscribe-starter" small style="width: 80%;" to="/demo" :size="16">Souscrire</BaseButton>
+        <BaseButton
+          id="section-pricing-subscribe-starter"
+          small
+          style="width: 80%"
+          @click="handleSubscribe('starter')"
+          :size="16"
+          >Souscrire</BaseButton
+        >
         <ul>
-          <li><span>
-              <span class="text-blue"><b style="font-weight: 600;">20</b></span> surveillances activables
-            </span></li>
+          <li>
+            <span>
+              <span class="text-blue"><b style="font-weight: 600">20</b></span> surveillances
+              activables
+            </span>
+          </li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card__title">Formule Équipe</div>
-        <q-slider style="width: 80%;" v-model="members" :min="2" :max="10" :step="1" track-size="1px"
-          thumb-size="20px" />
+        <q-slider
+          style="width: 80%"
+          v-model="members"
+          :min="2"
+          :max="10"
+          :step="1"
+          track-size="1px"
+          thumb-size="20px"
+        />
 
         <div class="card__members">
           <span>{{ members }} utilisateur{{ members > 1 ? 's' : '' }}</span>
         </div>
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
         <div>
-          <div class="card__price" style="position: relative; top: -10px;">
+          <div class="card__price" style="position: relative; top: -10px">
             <span>{{ getPrice }}</span>
-            <span style="cursor: pointer" @click="annual = !annual">/
+            <span style="cursor: pointer" @click="annual = !annual"
+              >/
               <template v-if="annual">an</template>
               <template v-else>mois</template>
             </span>
           </div>
 
-          <div class="card__price--detail" v-if="!annual">
-            soit 29€ / mois / utilisateur
-          </div>
-          <div class="card__price--detail" v-else>
-            soit 26€ / mois / utilisateur
-          </div>
+          <div class="card__price--detail" v-if="!annual">soit 29€ / mois / utilisateur</div>
+          <div class="card__price--detail" v-else>soit 26€ / mois / utilisateur</div>
         </div>
 
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
 
-
-
-
-        <BaseButton id="section-pricing-subscribe-team" small style="width: 80%;" to="/demo" :size="16">Souscrire</BaseButton>
+        <BaseButton
+          id="section-pricing-subscribe-team"
+          small
+          style="width: 80%"
+          to="/demo"
+          :size="16"
+          disabled
+          >Souscrire</BaseButton
+        >
         <ul>
           <li>
-            <span><span class="text-blue"><b style="font-weight: 600;">25</b></span> surveillances activables par
-              utilisateur</span>
+            <span
+              ><span class="text-blue"><b style="font-weight: 600">25</b></span> surveillances
+              activables par utilisateur</span
+            >
           </li>
         </ul>
       </div>
@@ -96,18 +107,18 @@
       <div class="card">
         <div class="card__title">Organisation</div>
 
-        <div style="flex: 1;"></div>
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
+        <div style="flex: 1"></div>
 
-        <div class="card__price">
-          Parlons-en
-        </div>
+        <div class="card__price">Parlons-en</div>
 
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
 
-        <BaseButton id="section-pricing-contact-us" small style="width: 80%;" to="/demo" :size="16">Contactez-nous</BaseButton>
+        <BaseButton id="section-pricing-contact-us" small style="width: 80%" to="/demo" :size="16"
+          >Contactez-nous</BaseButton
+        >
         <p>
-          Besoin d’un service sur mesure ? <br>
+          Besoin d’un service sur mesure ? <br />
           Discutons d’une solution adaptée à l’ensemble de vos besoins
         </p>
       </div>
@@ -161,7 +172,7 @@
       cursor: pointer;
       font-size: 20px;
       line-height: 30px;
-      color: #9FA8B0;
+      color: #9fa8b0;
 
       &.active {
         color: $blue;
@@ -212,7 +223,6 @@
         flex: 1;
         height: 90%;
 
-
         span:last-child {
           color: $grey4;
           font-size: 16px;
@@ -225,7 +235,6 @@
         }
 
         @media (max-width: $breakpoint-sm-max) {
-
           span:last-child {
             height: auto;
           }
@@ -258,7 +267,6 @@
         background-color: #fff;
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
-
       }
 
       &__members {
@@ -294,21 +302,20 @@
           display: flex;
           align-items: center;
           gap: 10px;
-          color: #9797A5;
+          color: #9797a5;
           font-size: 16px;
           line-height: 24px;
           width: 100%;
 
           &:before {
-            content: "";
-            background-image: url("../assets/check.svg");
+            content: '';
+            background-image: url('../assets/check.svg');
             background-size: cover;
             width: 12.5px;
             padding-right: 12.5px;
             height: 11px;
           }
         }
-
       }
     }
 
@@ -337,26 +344,63 @@
         }
       }
     }
-
   }
 }
 </style>
 
 <script lang="ts" setup>
+import { Notify } from 'quasar';
 import BaseButton from 'src/components/BaseButton.vue';
-import { computed, ref } from "vue";
+import { invokeApi } from 'src/services/ServicesUsers';
+import { computed, ref } from 'vue';
 
 const annual = ref(true);
 
 const members = ref(2);
 
 const getPrice = computed(() => {
-  const unitPrice = annual.value ? 312 : 29.00;
+  const unitPrice = annual.value ? 312 : 29.0;
   if (annual.value) {
-    return `${(unitPrice * members.value)}€`;
+    return `${unitPrice * members.value}€`;
   } else {
     return `${(unitPrice * members.value).toFixed(2)}€`;
   }
 });
 
+const handleSubscribe = async (plan: string) => {
+  console.log(plan);
+  let priceId = '';
+  if (plan === 'starter') {
+    if (annual.value) {
+      priceId = 'price_1Q5o7vP4GCw0NcGsZSX1CKwa';
+    } else {
+      priceId = 'price_1Q5o7vP4GCw0NcGs81mfFdwe';
+    }
+  } else {
+    return Notify.create({
+      message: "Cette fonctionnalité n'est pas encore disponible",
+      color: 'negative',
+    });
+  }
+
+  const getPortail = await invokeApi({
+    index: 1,
+    method: 'POST',
+    path: '/subscriptions',
+    parameters: {
+      priceId,
+    },
+    useQueryString: false,
+    forceRefreshToken: false,
+  });
+
+  if (getPortail.session_url) {
+    window.location.href = getPortail.session_url;
+  } else {
+    Notify.create({
+      message: "Une erreur s'est produite",
+      color: 'negative',
+    });
+  }
+};
 </script>

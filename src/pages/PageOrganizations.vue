@@ -8,7 +8,7 @@
 
     <div class="flex q-gutter-md q-mt-md">
       <q-input outlined v-model="organization_name" label="Nom" dense />
-      <BaseButton @click="handleCreate">Créer</BaseButton>
+      <BaseButton @click="handleCreate">Créer une organisation</BaseButton>
     </div>
 
     <TableOrganizations />

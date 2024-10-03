@@ -111,6 +111,12 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'http',
     link: 'generate-code',
   },
+  {
+    title: 'Page my organization',
+    caption: 'LegalMap my organization Page test',
+    icon: 'http',
+    link: 'my-organization',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

@@ -2,16 +2,6 @@
 
 <template>
   <q-page padding>
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Tester les abonnements</div>
-
-        <form @submit.prevent="subscribeToWatch">
-          <BaseButton type="submit"> S'abonner à Watch</BaseButton>
-        </form>
-      </q-card-section>
-    </q-card>
-
     <Pricing />
   </q-page>
 </template>
@@ -30,14 +20,13 @@ export default defineComponent({
     Pricing,
   },
   setup() {
-    const subscribeToWatch = async () => {
-      console.log('subscribeToWatch');
+    const subscribeToWatch = async (priceId: string) => {
       const getPortail = await invokeApi({
         index: 1,
         method: 'POST',
         path: '/subscriptions',
         parameters: {
-          priceId: 'price_1PvGWNP4GCw0NcGs52rsGVmk',
+          priceId,
         },
         useQueryString: false,
         forceRefreshToken: false,

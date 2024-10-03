@@ -84,7 +84,8 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-import { QCard, QImg, QBtn, QDialog, QCardSection, QCardActions, QInput } from 'quasar';
+import { QCard, QImg, QBtn, QDialog, QCardSection, QCardActions, QInput, Notify } from 'quasar';
+import { invokeApi } from 'src/services/ServicesUsers';
 
 export default {
   name: 'ReclaimAdvantage',
@@ -107,16 +108,33 @@ export default {
       isPopupOpen.value = true;
     };
 
-    const checkCode = () => {
-      isPopupOpen.value = false;
+    const checkCode = async () => {
+      // check code before
+      try {
+        const getPortail = await invokeApi({
+          index: 1,
+          method: 'POST',
+          path: '/subscriptions',
+          parameters: {
+            priceId: 'price_1Q5o7vP4GCw0NcGs81mfFdwe',
+            promotionCode: code.value,
+          },
+          useQueryString: false,
+          forceRefreshToken: false,
+        });
 
-      if (code.value === '1234') {
-        resultMessage.value = "🎉 Félicitations ! Vous avez obtenu l'avantage.";
-      } else {
-        resultMessage.value = '❌ Code incorrect. Veuillez réessayer.';
+        if (getPortail.session_url) {
+          window.location.href = getPortail.session_url;
+        } else {
+          Notify.create({
+            message: "Une erreur s'est produite",
+            color: 'negative',
+          });
+        }
+      } catch (error) {
+        resultMessage.value = 'Code invalide';
+        isResultPopupOpen.value = true;
       }
-
-      isResultPopupOpen.value = true;
     };
 
     return {
