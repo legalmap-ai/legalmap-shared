@@ -18,12 +18,12 @@
       :loading="loading"
     >
       <template v-slot:top-right>
-        <q-btn
+        <!--<q-btn
           color="primary"
           icon="add"
           label="Nouvelle Organisation"
-          @click="openAddorganizationDialog"
-        />
+          @click="openAddOrganizationDialog"
+        />-->
       </template>
 
       <template v-slot:body-cell-subscription="props">
@@ -58,40 +58,103 @@
         <div class="flex q-gutter-xl">
           <q-card-section style="flex: 1">
             <div class="text-bold q-mb-md">Informations</div>
-            <q-input
-              class="q-mb-md"
-              v-model="organizationDialog.organization.organization_name"
-              label="Nom de l'organisation"
-              outlined
-              dense
-            />
-
+            <div class="flex q-gutter-md">
+              <q-input
+                class="q-mb-md"
+                style="flex: 1"
+                v-model="organizationDialog.organization.organization_name"
+                label="Nom"
+                outlined
+                dense
+              />
+            </div>
             <div class="text-bold q-mb-sm">
               Membres de l'organisation ({{ organizationDialog.organization.members.length }}/{{
                 getMaxSeats
               }})
             </div>
             <div class="">
-              <q-chip
-                v-for="(member, index) in organizationDialog.organization.members"
+              <div>
+                <q-chip
+                  v-for="member in organizationDialog.organization.members"
+                  :key="member"
+                  removable
+                  @remove="removeMember(member)"
+                >
+                  {{ member }}
+                </q-chip>
+              </div>
+              <div class="flex q-gutter-sm q-mt-md">
+                <q-input v-model="newMember" label="Ajouter un membre" outlined dense />
+                <q-btn @click="addMember" icon="add" />
+              </div>
+            </div>
+
+            <div class="q-pt-md">
+              <div class="flex items-center q-gutter-sm">
+                <div class="text-bold q-mb-md">Abonnement en cours</div>
+              </div>
+              <div class="q-mb-md text-grey-8 text-caption" v-if="!editedSubscription.length">
+                Ce compte n'a pas d'abonnement en cours.
+              </div>
+              <div
+                class="flex q-gutter-md q-mb-md"
+                v-for="(sub, index) in editedSubscription"
                 :key="index"
-                removable
-                @remove="removeMember(member)"
               >
-                {{ member.email }}
-              </q-chip>
+                <q-toggle v-model="sub.active" />
+
+                <q-select
+                  style="flex: 1"
+                  outlined
+                  dense
+                  v-model="sub.plan"
+                  map-options
+                  :options="['WATCH', 'SEARCH', 'GRAPH']"
+                />
+
+                <q-input
+                  style="flex: 1; width: 100px"
+                  v-model="sub.startDate"
+                  label="Date de début"
+                  outlined
+                  dense
+                  type="date"
+                />
+
+                <q-input
+                  style="flex: 1; width: 100px"
+                  v-model="sub.endDate"
+                  label="Date de fin"
+                  outlined
+                  dense
+                  type="date"
+                />
+
+                <q-input
+                  style="flex: 1; width: 100px"
+                  v-model.number="sub.seats"
+                  label="Nombre de sièges"
+                  outlined
+                  dense
+                  type="number"
+                />
+
+                <q-btn flat icon="delete" @click="editedSubscription.splice(index, 1)" />
+              </div>
             </div>
-            <div class="flex q-gutter-sm q-mt-md">
-              <q-input v-model="newMember" label="Ajouter un membre" outlined dense />
-              <q-btn @click="addMember" icon="add" />
-            </div>
+            <q-btn
+              @click="addSubscription"
+              label="Ajouter un abonnement"
+              color="primary"
+              class="q-mt-md"
+            />
+            <q-card-actions align="right" class="flex q-gutter-md">
+              <BaseButton v-close-popup secondary>Annuler</BaseButton>
+              <BaseButton @click="saveOrganization">Enregistrer</BaseButton>
+            </q-card-actions>
           </q-card-section>
         </div>
-
-        <q-card-actions align="right" class="flex q-gutter-md">
-          <BaseButton v-close-popup secondary>Annuler</BaseButton>
-          <BaseButton @click="saveOrganization">Enregistrer</BaseButton>
-        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -128,19 +191,15 @@ interface Subscription {
   invoice: string;
   startDate: string;
   endDate: string;
-  seats?: number;
-}
-
-interface Member {
-  email: string;
+  seats: number; // Ajout de la propriété seats
 }
 
 interface Organization {
   _id: string;
   user_id: string;
   organization_name: string;
-  members: Member[];
-  subscription: Subscription[];
+  members: string[]; // Changé de email[] à string[]
+  subscription: Subscription[] | null;
 }
 
 interface OrganizationDialog {
@@ -164,11 +223,76 @@ export default defineComponent({
     const loading = ref(false);
     const organizations = ref<Organization[]>([]);
     const router = useRouter();
-    const editedSubscription = ref<Subscription[]>([]);
+
+    const editedSubscription = ref<Subscription[]>([
+      {
+        active: false,
+        plan: '',
+        price: 0,
+        subscription: '',
+        invoice: '',
+        startDate: '',
+        endDate: '',
+        seats: 0, // Initialisation de seats
+      },
+    ]);
+
+    const formatDate = computed(() => (date: string) => {
+      return new Date(date).toLocaleDateString();
+    });
 
     const getMaxSeats = computed(() => {
-      return editedSubscription.value.reduce((acc, sub) => acc + (sub.seats || 0), 0);
+      const subscription = organizationDialog.value.organization.subscription;
+      const seats = subscription?.reduce((acc, sub) => acc + sub.seats, 0) || 0;
+      return seats;
     });
+
+    const fetchOrganizations = async () => {
+      loading.value = true;
+      try {
+        const response = await invokeApi({
+          index: 1,
+          method: 'GET',
+          path: '/organizations',
+          parameters: '',
+          useQueryString: true,
+          forceRefreshToken: false,
+        });
+
+        if (response && Array.isArray(response.organizations)) {
+          organizations.value = response.organizations;
+        } else {
+          console.error('Invalid response format:', response);
+        }
+      } catch (error) {
+        router.push('/');
+        Notify.create({
+          message: "Vous n'avez pas les droits pour accéder à cette page",
+          color: 'negative',
+        });
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const columns: QTableColumn[] = [
+      {
+        name: 'organization_name',
+        required: true,
+        label: 'Nom',
+        align: 'left',
+        field: 'organization_name',
+        sortable: true,
+      },
+      {
+        name: 'subscription',
+        align: 'left',
+        label: 'Statut Abonnement',
+        field: 'subscription',
+        sortable: true,
+      },
+      { name: 'actions', align: 'center', label: 'Actions', field: 'actions' },
+    ];
 
     const filteredOrganizations = computed(() => {
       return organizations.value.filter((organization) =>
@@ -184,7 +308,7 @@ export default defineComponent({
         user_id: '',
         organization_name: '',
         members: [],
-        subscription: [],
+        subscription: null,
       },
     });
 
@@ -193,80 +317,135 @@ export default defineComponent({
       organization: null,
     });
 
-    const fetchOrganizations = async () => {
-      loading.value = true;
-      try {
-        const response = await invokeApi({
-          index: 1,
-          method: 'GET',
-          path: '/organizations',
-        });
-        organizations.value = response.organizations || [];
-      } catch (error) {
-        Notify.create({
-          message: 'Erreur lors de la récupération des organisations',
-          color: 'negative',
-        });
-      } finally {
-        loading.value = false;
-      }
+    const openAddOrganizationDialog = () => {
+      organizationDialog.value = {
+        show: true,
+        isEdit: false,
+        organization: {
+          _id: '',
+          user_id: '',
+          organization_name: '',
+          members: [],
+          subscription: [], // Initialise avec un tableau vide
+        },
+      };
+      editedSubscription.value = []; // Réinitialise les abonnements
     };
 
-    const openAddorganizationDialog = () => {
-      organizationDialog.value.show = true;
-      organizationDialog.value.isEdit = false;
-    };
+    const editOrganization = async (organization: Organization) => {
+      editedSubscription.value = organization.subscription
+        ? [...organization.subscription]
+        : [
+            {
+              active: false,
+              plan: '',
+              price: 0,
+              subscription: '',
+              invoice: '',
+              startDate: '',
+              endDate: '',
+              seats: 0,
+            },
+          ];
 
-    const editOrganization = (organization: Organization) => {
-      editedSubscription.value = organization.subscription;
+      // Formate les dates
+      editedSubscription.value.forEach((sub) => {
+        sub.startDate = sub.startDate.split('T')[0];
+        sub.endDate = sub.endDate.split('T')[0];
+      });
+
       organizationDialog.value = {
         show: true,
         isEdit: true,
-        organization: JSON.parse(JSON.stringify(organization)),
+        organization: { ...organization, subscription: editedSubscription.value },
       };
     };
 
     const saveOrganization = async () => {
       try {
-        const { organization } = organizationDialog.value;
-        await invokeApi({
-          index: 1,
-          method: organization._id ? 'PUT' : 'POST',
-          path: `/organizations/${organization._id || ''}`,
-          parameters: organization,
-        });
-        await fetchOrganizations();
-        organizationDialog.value.show = false;
-      } catch (error) {
-        Notify.create({
-          message: "Erreur lors de l'enregistrement",
-          color: 'negative',
-        });
-      }
-    };
-
-    const confirmDeleteOrganization = (organization: Organization) => {
-      deleteDialog.value.organization = organization;
-      deleteDialog.value.show = true;
-    };
-
-    const deleteOrganization = async () => {
-      try {
-        if (deleteDialog.value.organization) {
+        if (organizationDialog.value.isEdit) {
           await invokeApi({
             index: 1,
-            method: 'DELETE',
-            path: `/organizations/${deleteDialog.value.organization._id}`,
+            method: 'PUT',
+            path: '/organizations/' + organizationDialog.value.organization._id,
+            parameters: {
+              organization_name: organizationDialog.value.organization.organization_name,
+              subscription: editedSubscription.value,
+              members: organizationDialog.value.organization.members,
+            },
+            useQueryString: false,
+            forceRefreshToken: false,
           });
-          await fetchOrganizations();
-          deleteDialog.value.show = false;
+          Notify.create({
+            message: 'Organisation mise à jour avec succès',
+            color: 'positive',
+          });
+        } else {
+          await invokeApi({
+            index: 1,
+            method: 'POST',
+            path: '/organizations',
+            parameters: {
+              organization_name: organizationDialog.value.organization.organization_name,
+              subscription: editedSubscription.value,
+              members: organizationDialog.value.organization.members,
+            },
+            useQueryString: false,
+            forceRefreshToken: false,
+          });
+          Notify.create({
+            message: 'Organisation ajoutée avec succès',
+            color: 'positive',
+          });
         }
       } catch (error) {
         Notify.create({
-          message: 'Erreur lors de la suppression',
+          message: "Une erreur est survenue lors de la sauvegarde de l'organisation",
           color: 'negative',
         });
       }
+      await fetchOrganizations();
+      organizationDialog.value.show = false;
+    };
+
+    const confirmDeleteOrganization = (organization: Organization) => {
+      deleteDialog.value = {
+        show: true,
+        organization: organization,
+      };
+    };
+
+    const deleteOrganization = async () => {
+      if (deleteDialog.value.organization) {
+        try {
+          await invokeApi({
+            index: 1,
+            method: 'DELETE',
+            path: '/organizations/' + deleteDialog.value.organization._id,
+            parameters: undefined,
+            useQueryString: false,
+            forceRefreshToken: false,
+          });
+          Notify.create({
+            message: 'Organisation supprimée avec succès',
+            color: 'positive',
+          });
+        } catch (error) {
+          Notify.create({
+            message: "Une erreur est survenue lors de la suppression de l'organisation",
+            color: 'negative',
+          });
+        }
+      }
+      deleteDialog.value.show = false;
+
+      await fetchOrganizations();
+    };
+
+    const removeMember = (member: string) => {
+      // Changé le type de string
+      organizationDialog.value.organization.members =
+        organizationDialog.value.organization.members.filter((m: string) => m !== member);
     };
 
     const newMember = ref('');
@@ -279,13 +458,30 @@ export default defineComponent({
         });
         return;
       }
-      organizationDialog.value.organization.members.push({ email: newMember.value });
+
+      if (newMember.value.trim() === '') {
+        Notify.create({
+          message: 'Le nom du membre ne peut pas être vide',
+          color: 'warning',
+        });
+        return;
+      }
+
+      organizationDialog.value.organization.members.push(newMember.value.trim());
       newMember.value = '';
     };
 
-    const removeMember = (member: Member) => {
-      organizationDialog.value.organization.members =
-        organizationDialog.value.organization.members.filter((m) => m !== member);
+    const addSubscription = () => {
+      editedSubscription.value.push({
+        active: false,
+        plan: '',
+        price: 0,
+        subscription: '',
+        invoice: '',
+        startDate: '',
+        endDate: '',
+        seats: 0,
+      });
     };
 
     onMounted(fetchOrganizations);
@@ -294,23 +490,26 @@ export default defineComponent({
       search,
       loading,
       organizations,
+      columns,
       filteredOrganizations,
       organizationDialog,
       deleteDialog,
-      editedSubscription,
-      openAddorganizationDialog,
+      formatDate,
+      getMaxSeats,
+      openAddOrganizationDialog,
       editOrganization,
       saveOrganization,
       confirmDeleteOrganization,
       deleteOrganization,
+      editedSubscription,
+      removeMember,
       newMember,
       addMember,
-      removeMember,
-      getMaxSeats,
+      addSubscription,
     };
   },
 
-  async mounted() {
+  mounted() {
     const authStore = useAuthStore();
     authStore.redirectIfNotLoggedIn();
   },

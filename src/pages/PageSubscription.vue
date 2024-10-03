@@ -8,15 +8,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import BaseButton from '../components/BaseButton.vue';
 import { invokeApi } from '../services/ServicesUsers';
 import { Notify } from 'quasar';
-import Pricing from 'src/components/Pricing.vue';
+import Pricing from 'src/components/PricingBloc.vue';
 
 export default defineComponent({
   name: 'PageSubscription',
   components: {
-    BaseButton,
     Pricing,
   },
   setup() {
