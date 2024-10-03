@@ -80,6 +80,21 @@
                 <q-td key="startDate" :props="props"> {{ formatDate(props.row.startDate) }} </q-td>
                 <q-td key="endDate" :props="props"> {{ formatDate(props.row.endDate) }} </q-td>
                 <q-td key="active" :props="props"> {{ props.row.active ? 'Oui' : 'Non' }} </q-td>
+                <q-td key="canceled" :props="props">
+                  {{ props.row.canceled ? 'Oui' : 'Non' }}
+                </q-td>
+                <q-td key="actions" :props="props">
+                  <q-btn
+                    v-if="props.row.active && !props.row.canceled"
+                    color="primary"
+                    outline
+                    size="sm"
+                    dense
+                    no-caps
+                    label="Annuler"
+                    @click="handleCancelSubscription(props.row)"
+                  />
+                </q-td>
               </q-tr>
             </template>
           </q-table>
@@ -136,7 +151,7 @@
 </template>
 
 <script lang="ts">
-import { Notify } from 'quasar';
+import { Dialog, Notify } from 'quasar';
 import { invokeApi } from 'src/services/ServicesUsers';
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import { QTableColumn } from 'quasar';
@@ -157,6 +172,8 @@ interface Subscription {
     id: string;
     invoice_pdf: string;
   };
+  actions: string;
+  canceled: boolean;
 }
 
 interface Organization {
@@ -178,6 +195,8 @@ export default defineComponent({
       { name: 'startDate', label: 'Début', align: 'center', field: 'startDate', sortable: true },
       { name: 'endDate', label: 'Fin', align: 'center', field: 'endDate', sortable: true },
       { name: 'active', label: 'Actif', align: 'center', field: 'active', sortable: true },
+      { name: 'canceled', label: 'Annulé', align: 'center', field: 'canceled', sortable: true },
+      { name: 'actions', label: 'Actions', align: 'center', field: 'actions' },
     ]);
 
     const newMember = ref<Email>('');
@@ -354,6 +373,45 @@ export default defineComponent({
       }
     };
 
+    const handleCancelSubscription = async (subscription: Subscription) => {
+      try {
+        Dialog.create({
+          title: "Annuler l'abonnement",
+          message: 'Êtes-vous sûr de vouloir annuler cet abonnement ?',
+          ok: {
+            label: 'Oui',
+            color: 'negative',
+          },
+          cancel: {
+            label: 'Non',
+            color: 'primary',
+          },
+        }).onOk(async () => {
+          await invokeApi({
+            index: 1,
+            method: 'DELETE',
+            path: `/subscriptions/${subscription.subscription}`,
+            parameters: undefined,
+            useQueryString: false,
+            forceRefreshToken: false,
+          });
+
+          getSubscriptions();
+
+          Notify.create({
+            message: 'Abonnement annulé avec succès',
+            color: 'positive',
+          });
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'annulation de l'abonnement :", error);
+        Notify.create({
+          message: "Erreur lors de l'annulation de l'abonnement",
+          color: 'negative',
+        });
+      }
+    };
+
     onMounted(() => {
       fetchOrganization();
       getSubscriptions();
@@ -374,6 +432,7 @@ export default defineComponent({
       isValidEmail,
       handleDownloadInvoice,
       subscriptions,
+      handleCancelSubscription,
     };
   },
 });
