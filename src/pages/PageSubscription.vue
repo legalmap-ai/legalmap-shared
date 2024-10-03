@@ -11,6 +11,8 @@
         </form>
       </q-card-section>
     </q-card>
+
+    <Pricing />
   </q-page>
 </template>
 
@@ -19,11 +21,13 @@ import { defineComponent } from 'vue';
 import BaseButton from '../components/BaseButton.vue';
 import { invokeApi } from '../services/ServicesUsers';
 import { Notify } from 'quasar';
+import Pricing from 'src/components/Pricing.vue';
 
 export default defineComponent({
   name: 'PageSubscription',
   components: {
     BaseButton,
+    Pricing,
   },
   setup() {
     const subscribeToWatch = async () => {

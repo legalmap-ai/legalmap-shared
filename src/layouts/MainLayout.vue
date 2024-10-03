@@ -99,6 +99,18 @@ const linksList: LegalmapPagesProps[] = [
     icon: 'corporate_fare',
     link: 'organizations',
   },
+  {
+    title: 'Page Reclaim Advantage',
+    caption: 'LegalMap Reclaim Advantage Page test',
+    icon: 'http',
+    link: 'reclaim-advantage',
+  },
+  {
+    title: 'Page Generate Code',
+    caption: 'LegalMap Generate Code Page test',
+    icon: 'http',
+    link: 'generate-code',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

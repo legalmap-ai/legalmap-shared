@@ -63,6 +63,16 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: '', component: () => import('pages/PageOrganizations.vue') }],
   },
   {
+    path: '/reclaim-advantage',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageReclaimAdvantage.vue') }],
+  },
+  {
+    path: '/generate-code',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PageGenerateCode.vue') }],
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },

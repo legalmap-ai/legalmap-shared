@@ -93,12 +93,8 @@
           <q-card-section class="text-h6 q-pa-sm">
             <div class="text-h6">Mes factures</div>
             <q-list bordered separator class="q-mt-md">
-              <q-item
-                clickable
-                v-ripple
-                v-for="subscription in subscriptions"
-                :key="subscription.id"
-              >
+              <!-- subscription in subscriptions -->
+              <q-item clickable v-ripple v-for="subscription in 3" :key="subscription.id">
                 <q-item-section>
                   <q-item-label
                     >Facture {{ subscription.plan }}

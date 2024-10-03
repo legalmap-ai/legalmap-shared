@@ -95,7 +95,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch, ShallowRef } from 'vue';
-// @ts-expect-error // @ts-ignore
 import { VuePDF, usePDF } from '@tato30/vue-pdf';
 import { invokeApi } from '../services/ServicesUsers';
 import { QueryError } from '../utils/api.utils';

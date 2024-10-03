@@ -10,6 +10,8 @@
       <q-input outlined v-model="organization_name" label="Nom" dense />
       <BaseButton @click="handleCreate">Créer</BaseButton>
     </div>
+
+    <TableOrganizations />
   </q-page>
 </template>
 
@@ -18,11 +20,13 @@ import BaseButton from '../components/BaseButton.vue';
 import { invokeApi } from '../services/ServicesUsers';
 import { defineComponent, ref } from 'vue';
 import SelectOrganization from '../components/SelectOrganization.vue';
+import TableOrganizations from 'src/components/TableOrganizations.vue';
 
 export default defineComponent({
   components: {
     BaseButton,
     SelectOrganization,
+    TableOrganizations,
   },
   name: 'LegalmapOrganizations',
   props: {},

@@ -79,7 +79,7 @@
               type="email"
             />
 
-            <div class="q-pt-md">
+            <!--<div class="q-pt-md">
               <div class="flex items-center q-gutter-sm">
                 <div class="text-bold q-mb-md">Abonnement en cours</div>
               </div>
@@ -116,7 +116,7 @@
                   type="date"
                 />
               </div>
-            </div>
+            </div>-->
             <q-card-actions align="right" class="flex q-gutter-md">
               <BaseButton v-close-popup secondary>Annuler</BaseButton>
               <BaseButton @click="saveClient">Enregistrer</BaseButton>
