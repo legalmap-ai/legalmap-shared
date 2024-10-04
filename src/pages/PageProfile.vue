@@ -146,9 +146,9 @@ export default defineComponent({
     const profileId = ref<string>('');
 
     const profile = ref({
-      email: 'matteokocken@gmail.com',
-      given_name: 'Matteo',
-      family_name: 'Kocken',
+      email: '',
+      given_name: '',
+      family_name: '',
     }) as Ref<Profile>;
 
     const password_dict = ref({
@@ -175,9 +175,9 @@ export default defineComponent({
 
         profile.value = {
           id: profileId.value,
-          email: 'matteokocken@gmail.com',
-          given_name: 'Matteo',
-          family_name: 'Kocken',
+          email: '',
+          given_name: '',
+          family_name: '',
         } as Profile;
       } catch (error) {
         error_message.value = translateError(error as QueryError);

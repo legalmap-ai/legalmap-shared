@@ -122,13 +122,13 @@ if (process.env.DEV) {
 
 const router = useRouter();
 
-const username = ref('matteokocken@gmail.com');
-const given_name = ref('Arnaud');
-const family_name = ref('de La Bédoyère');
+const username = ref('com');
+const given_name = ref('');
+const family_name = ref('');
 
 const code = ref('');
-const password = ref('Arnaud_1234');
-const password2 = ref('Arnaud_1234');
+const password = ref('');
+const password2 = ref('');
 const askCode = ref(false);
 
 const loading = ref(false);
