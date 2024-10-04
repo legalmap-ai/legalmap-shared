@@ -68,7 +68,7 @@
                 dense
               />
             </div>
-            <div class="text-bold q-mb-sm">
+            <div class="text-bold q-mb-sm" v-if="organizationDialog.organization.members">
               Membres de l'organisation ({{ organizationDialog.organization.members.length }}/{{
                 getMaxSeats
               }})
