@@ -505,8 +505,12 @@ export default defineComponent({
         const response = await invokeApi({
           index: 1,
           method: 'POST',
-          path: '/users/' + clientDialog.value.client.email + '/group/' + group,
-          parameters: '',
+          path: '/users/roles',
+          parameters: {
+            username: clientDialog.value.client.email,
+            group_name: group,
+            action: 'add',
+          },
           useQueryString: false,
           forceRefreshToken: false,
         });
@@ -528,9 +532,13 @@ export default defineComponent({
       try {
         const response = await invokeApi({
           index: 1,
-          method: 'DELETE',
-          path: '/users/' + clientDialog.value.client.email + '/group/' + group,
-          parameters: undefined,
+          method: 'POST',
+          path: '/users/roles',
+          parameters: {
+            username: clientDialog.value.client.email,
+            group_name: group,
+            action: 'remove',
+          },
           useQueryString: false,
           forceRefreshToken: false,
         });
