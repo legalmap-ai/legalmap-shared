@@ -17,18 +17,9 @@
       :filter="search"
       :loading="loading"
     >
-      <template v-slot:top-right>
-        <!--<q-btn
-          color="primary"
-          icon="add"
-          label="Nouvelle Organisation"
-          @click="openAddOrganizationDialog"
-        />-->
-      </template>
-
-      <template v-slot:body-cell-subscription="props">
+      <template v-slot:body-cell-subscriptions="props">
         <q-td :props="props">
-          {{ props.row.subscription?.map((sub: Subscription) => sub.plan).join(', ') }}
+          {{ props.row.subscriptions?.map((sub: Subscription) => sub.plan).join(', ') }}
         </q-td>
       </template>
 
@@ -46,7 +37,7 @@
       </template>
     </q-table>
 
-    <!-- Dialogue pour ajouter/éditer une organisation -->
+    <!-- Dialogue pour éditer une organisation -->
     <q-dialog v-model="organizationDialog.show" persistent>
       <q-card style="width: 90%; max-width: 1200px">
         <q-card-section>
@@ -69,9 +60,7 @@
               />
             </div>
             <div class="text-bold q-mb-sm" v-if="organizationDialog.organization.members">
-              Membres de l'organisation ({{ organizationDialog.organization.members.length }}/{{
-                getMaxSeats
-              }})
+              Membres de l'organisation ({{ organizationDialog.organization.members.length }})
             </div>
             <div class="">
               <div>
@@ -85,7 +74,13 @@
                 </q-chip>
               </div>
               <div class="flex q-gutter-sm q-mt-md">
-                <q-input v-model="newMember" label="Ajouter un membre" outlined dense />
+                <q-input
+                  v-model="newMember"
+                  label="Ajouter un membre"
+                  outlined
+                  dense
+                  @keyup.enter="addMember"
+                />
                 <q-btn @click="addMember" icon="add" />
               </div>
             </div>
@@ -97,57 +92,71 @@
               <div class="q-mb-md text-grey-8 text-caption" v-if="!editedSubscription.length">
                 Ce compte n'a pas d'abonnement en cours.
               </div>
-              <div
-                class="flex q-gutter-md q-mb-md"
-                v-for="(sub, index) in editedSubscription"
-                :key="index"
-              >
-                <q-toggle v-model="sub.active" />
+              <div class="q-mb-md" v-for="(sub, index) in editedSubscription" :key="index">
+                <div class="flex q-gutter-md q-mb-md">
+                  <q-toggle v-model="sub.active" />
 
-                <q-select
-                  style="flex: 1"
-                  outlined
-                  dense
-                  v-model="sub.plan"
-                  map-options
-                  :options="['WATCH', 'SEARCH', 'GRAPH']"
-                />
+                  <q-select
+                    style="flex: 1"
+                    outlined
+                    dense
+                    v-model="sub.plan"
+                    map-options
+                    :options="['WATCH', 'SEARCH', 'GRAPH']"
+                  />
 
-                <q-input
-                  style="flex: 1; width: 100px"
-                  v-model="sub.startDate"
-                  label="Date de début"
-                  outlined
-                  dense
-                  type="date"
-                />
+                  <q-input
+                    style="flex: 1; width: 100px"
+                    v-model="sub.startDate"
+                    label="Date de début"
+                    outlined
+                    dense
+                    type="date"
+                  />
 
-                <q-input
-                  style="flex: 1; width: 100px"
-                  v-model="sub.endDate"
-                  label="Date de fin"
-                  outlined
-                  dense
-                  type="date"
-                />
+                  <q-input
+                    style="flex: 1; width: 100px"
+                    v-model="sub.endDate"
+                    label="Date de fin"
+                    outlined
+                    dense
+                    type="date"
+                  />
 
-                <q-input
-                  style="flex: 1; width: 100px"
-                  v-model.number="sub.seats"
-                  label="Nombre de sièges"
-                  outlined
-                  dense
-                  type="number"
-                />
+                  <q-input
+                    style="flex: 1; width: 100px"
+                    v-model.number="sub.seats"
+                    label="Nombre de sièges"
+                    outlined
+                    dense
+                    type="number"
+                  />
 
-                <q-btn flat icon="delete" @click="editedSubscription.splice(index, 1)" />
+                  <q-btn flat icon="delete" @click="handleDeleteSubscription(index)" />
+                </div>
+
+                <div>
+                  <q-select
+                    label="Sélectionner des membres"
+                    v-model="sub.members"
+                    multiple
+                    :options="organizationDialog.organization.members"
+                    outlined
+                    dense
+                  />
+                </div>
               </div>
             </div>
             <q-btn
               @click="addSubscription"
               label="Ajouter un abonnement"
+              icon="add"
+              dense
+              outline
+              rounded
+              no-caps
               color="primary"
-              class="q-mt-md"
+              class="q-mt-md q-pr-sm"
             />
             <q-card-actions align="right" class="flex q-gutter-md">
               <BaseButton v-close-popup secondary>Annuler</BaseButton>
@@ -177,7 +186,7 @@
 
 <script lang="ts">
 import { ref, computed, onMounted, defineComponent } from 'vue';
-import { Notify, QTableColumn } from 'quasar';
+import { Dialog, Notify, QTableColumn } from 'quasar';
 import { invokeApi } from '../services/ServicesUsers';
 import { useAuthStore } from '../stores/store-auth';
 import { useRouter } from 'vue-router';
@@ -191,15 +200,16 @@ interface Subscription {
   invoice: string;
   startDate: string;
   endDate: string;
-  seats: number; // Ajout de la propriété seats
+  members: string[];
+  seats: number;
 }
 
 interface Organization {
   _id: string;
   user_id: string;
   organization_name: string;
-  members: string[]; // Changé de email[] à string[]
-  subscription: Subscription[] | null;
+  members: string[];
+  subscriptions: Subscription[] | null;
 }
 
 interface OrganizationDialog {
@@ -233,18 +243,13 @@ export default defineComponent({
         invoice: '',
         startDate: '',
         endDate: '',
-        seats: 0, // Initialisation de seats
+        members: [],
+        seats: 0,
       },
     ]);
 
     const formatDate = computed(() => (date: string) => {
       return new Date(date).toLocaleDateString();
-    });
-
-    const getMaxSeats = computed(() => {
-      const subscription = organizationDialog.value.organization.subscription;
-      const seats = subscription?.reduce((acc, sub) => acc + sub.seats, 0) || 0;
-      return seats;
     });
 
     const fetchOrganizations = async () => {
@@ -285,10 +290,10 @@ export default defineComponent({
         sortable: true,
       },
       {
-        name: 'subscription',
+        name: 'subscriptions',
         align: 'left',
-        label: 'Statut Abonnement',
-        field: 'subscription',
+        label: 'Statut Abonnements',
+        field: 'subscriptions',
         sortable: true,
       },
       { name: 'actions', align: 'center', label: 'Actions', field: 'actions' },
@@ -308,7 +313,7 @@ export default defineComponent({
         user_id: '',
         organization_name: '',
         members: [],
-        subscription: null,
+        subscriptions: null,
       },
     });
 
@@ -326,15 +331,15 @@ export default defineComponent({
           user_id: '',
           organization_name: '',
           members: [],
-          subscription: [], // Initialise avec un tableau vide
+          subscriptions: [], // Initialise avec un tableau vide
         },
       };
       editedSubscription.value = []; // Réinitialise les abonnements
     };
 
     const editOrganization = async (organization: Organization) => {
-      editedSubscription.value = organization.subscription
-        ? [...organization.subscription]
+      editedSubscription.value = organization.subscriptions
+        ? [...organization.subscriptions]
         : [
             {
               active: false,
@@ -344,6 +349,7 @@ export default defineComponent({
               invoice: '',
               startDate: '',
               endDate: '',
+              members: [],
               seats: 0,
             },
           ];
@@ -359,12 +365,63 @@ export default defineComponent({
       organizationDialog.value = {
         show: true,
         isEdit: true,
-        organization: { ...organization, subscription: editedSubscription.value },
+        organization: { ...organization, subscriptions: editedSubscription.value },
       };
     };
 
     const saveOrganization = async () => {
       try {
+        // check if the organization has a name
+        if (organizationDialog.value.organization.organization_name.trim() === '') {
+          Notify.create({
+            message: "Le nom de l'organisation ne peut pas être vide",
+            color: 'warning',
+          });
+          return;
+        }
+
+        for (let i = 0; i < editedSubscription.value.length; i++) {
+          if (
+            editedSubscription.value[i].plan.trim() === '' ||
+            editedSubscription.value[i].startDate.trim() === '' ||
+            editedSubscription.value[i].endDate.trim() === '' ||
+            editedSubscription.value[i].seats === 0
+          ) {
+            Notify.create({
+              message: "Veuillez remplir tous les champs de l'abonnement",
+              color: 'warning',
+            });
+            return;
+          }
+
+          if (
+            new Date(editedSubscription.value[i].startDate) >
+            new Date(editedSubscription.value[i].endDate)
+          ) {
+            Notify.create({
+              message: 'La date de début doit être avant la date de fin',
+              color: 'warning',
+            });
+            return;
+          }
+
+          if (editedSubscription.value[i].members.length > editedSubscription.value[i].seats) {
+            Notify.create({
+              message: 'Le nombre de membres ne peut pas être supérieur au nombre de sièges',
+              color: 'warning',
+            });
+            return;
+          }
+
+          if (editedSubscription.value[i].members.length !== editedSubscription.value[i].seats) {
+            Notify.create({
+              message: 'Le nombre de membres doit être égal au nombre de sièges',
+              color: 'warning',
+            });
+            return;
+          }
+        }
+
         if (organizationDialog.value.isEdit) {
           await invokeApi({
             index: 1,
@@ -372,7 +429,7 @@ export default defineComponent({
             path: '/organizations/' + organizationDialog.value.organization._id,
             parameters: {
               organization_name: organizationDialog.value.organization.organization_name,
-              subscription: editedSubscription.value,
+              subscriptions: editedSubscription.value,
               members: organizationDialog.value.organization.members,
             },
             useQueryString: false,
@@ -389,7 +446,7 @@ export default defineComponent({
             path: '/organizations',
             parameters: {
               organization_name: organizationDialog.value.organization.organization_name,
-              subscription: editedSubscription.value,
+              subscriptions: editedSubscription.value,
               members: organizationDialog.value.organization.members,
             },
             useQueryString: false,
@@ -448,17 +505,18 @@ export default defineComponent({
       // Changé le type de string
       organizationDialog.value.organization.members =
         organizationDialog.value.organization.members.filter((m: string) => m !== member);
+
+      // check if the member is in the subscription
+      editedSubscription.value.forEach((sub) => {
+        sub.members = sub.members.filter((m: string) => m !== member);
+      });
     };
 
     const newMember = ref('');
 
     const addMember = () => {
-      if (organizationDialog.value.organization.members.length >= getMaxSeats.value) {
-        Notify.create({
-          message: 'Vous avez atteint le nombre maximum de membres pour cette organisation',
-          color: 'negative',
-        });
-        return;
+      if (!organizationDialog.value.organization.members) {
+        organizationDialog.value.organization.members = [];
       }
 
       if (newMember.value.trim() === '') {
@@ -469,8 +527,33 @@ export default defineComponent({
         return;
       }
 
+      if (organizationDialog.value.organization.members.includes(newMember.value.trim())) {
+        Notify.create({
+          message: 'Ce membre est déjà dans la liste',
+          color: 'warning',
+        });
+        return;
+      }
+
       organizationDialog.value.organization.members.push(newMember.value.trim());
       newMember.value = '';
+    };
+
+    const handleDeleteSubscription = (index: number) => {
+      Dialog.create({
+        title: "Supprimer l'abonnement",
+        message: 'Êtes-vous sûr de vouloir supprimer cet abonnement ?',
+        ok: {
+          label: 'Oui',
+          color: 'negative',
+        },
+        cancel: {
+          label: 'Non',
+          color: 'primary',
+        },
+      }).onOk(() => {
+        editedSubscription.value.splice(index, 1);
+      });
     };
 
     const addSubscription = () => {
@@ -482,6 +565,7 @@ export default defineComponent({
         invoice: '',
         startDate: '',
         endDate: '',
+        members: [],
         seats: 0,
       });
     };
@@ -497,7 +581,6 @@ export default defineComponent({
       organizationDialog,
       deleteDialog,
       formatDate,
-      getMaxSeats,
       openAddOrganizationDialog,
       editOrganization,
       saveOrganization,
@@ -508,6 +591,7 @@ export default defineComponent({
       newMember,
       addMember,
       addSubscription,
+      handleDeleteSubscription,
     };
   },
 

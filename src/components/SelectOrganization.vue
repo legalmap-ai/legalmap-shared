@@ -47,7 +47,7 @@ export default defineComponent({
       const orgs = (await invokeApi({
         index: 1,
         method: 'GET',
-        path: '/organizations',
+        path: '/organizations/me',
         parameters: {},
         useQueryString: false,
         forceRefreshToken: false,

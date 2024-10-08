@@ -226,6 +226,7 @@ import { invokeApi } from '../services/ServicesUsers';
 import { useAuthStore } from '../stores/store-auth';
 import { useRouter } from 'vue-router';
 import BaseButton from '../components/BaseButton.vue';
+import { AxiosError } from 'axios';
 
 interface Subscription {
   active: boolean;
@@ -428,44 +429,23 @@ export default defineComponent({
     };
 
     const saveClient = async () => {
-      // if create
-      if (!clientDialog.value.isEdit) {
-        try {
-          await invokeApi({
-            index: 1,
-            method: 'POST',
-            path: '/clients/create',
-            parameters: {
-              given_name: clientDialog.value.client?.given_name,
-              family_name: clientDialog.value.client?.family_name,
-              email: clientDialog.value.client?.email,
-              subscription: clientDialog.value.client?.subscription,
-            },
-            useQueryString: false,
-            forceRefreshToken: false,
-          });
-        } catch (error) {
-          Notify.create({
-            message: 'Une erreur est survenue lors de la création du client',
-            color: 'negative',
-          });
-        }
-      } else {
-        // if edit
-        try {
-          await invokeApi({
-            index: 1,
-            method: 'PUT',
-            path: '/users/' + clientDialog.value.client?.id,
-            parameters: {
-              given_name: clientDialog.value.client?.given_name,
-              family_name: clientDialog.value.client?.family_name,
-              subscription: clientDialog.value.client?.subscription,
-            },
-            useQueryString: false,
-            forceRefreshToken: false,
-          });
-        } catch (error) {
+      try {
+        await invokeApi({
+          index: 1,
+          method: 'PUT',
+          path: '/users/' + clientDialog.value.client?.id,
+          parameters: {
+            given_name: clientDialog.value.client?.given_name,
+            family_name: clientDialog.value.client?.family_name,
+            subscription: clientDialog.value.client?.subscription,
+          },
+          useQueryString: false,
+          forceRefreshToken: false,
+        });
+      } catch (err: unknown) {
+        const error = err as AxiosError;
+
+        if (error.status !== 304) {
           Notify.create({
             message: 'Une erreur est survenue lors de la modification du client',
             color: 'negative',

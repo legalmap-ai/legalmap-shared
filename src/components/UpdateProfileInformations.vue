@@ -13,48 +13,34 @@
                 disable
                 color="black"
                 dense
-                v-model="localProfile.email"
+                type="email"
+                v-model="user.email"
                 label="Email Address"
               />
             </q-item-section>
           </q-item>
           <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
             <q-item-section>
-              <q-input color="black" dense v-model="localProfile.given_name" label="First Name" />
+              <q-input
+                color="black"
+                type="text"
+                dense
+                v-model="user.given_name"
+                label="First Name"
+              />
             </q-item-section>
           </q-item>
           <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
             <q-item-section>
-              <q-input color="black" dense v-model="localProfile.family_name" label="Last Name" />
+              <q-input
+                color="black"
+                type="text"
+                dense
+                v-model="user.family_name"
+                label="Last Name"
+              />
             </q-item-section>
           </q-item>
-          <!--<q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" autogrow dense v-model="profile.address" label="Address" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.city" label="City" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input color="black" dense v-model="profile.post_code" label="Postal Code" />
-                </q-item-section>
-              </q-item>
-              <q-item class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <q-item-section>
-                  <q-input
-                    color="black"
-                    type="textarea"
-                    dense
-                    v-model="profile.about"
-                    label="About"
-                  />
-                </q-item-section>
-              </q-item>
-              -->
         </q-list>
 
         <div v-if="error" class="text-negative">{{ error }}</div>
@@ -78,8 +64,14 @@ import { invokeApi } from '../services/ServicesUsers';
 import { Profile } from '../types/profile';
 import { QueryError } from '../utils/api.utils';
 import { translateError } from '../utils/errors.utils';
-import { Ref, defineComponent, ref, watch } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import { useAuthStore } from '../stores/store-auth';
+
+interface User {
+  email: string;
+  given_name: string;
+  family_name: string;
+}
 
 export default defineComponent({
   props: {
@@ -89,18 +81,15 @@ export default defineComponent({
     },
   },
 
-  setup(props) {
+  setup() {
     let error = ref<string | null>(null);
     let loading = ref<boolean>(false);
-    const localProfile = ref({ ...props.profile }) as Ref<Profile>;
     const authStore = useAuthStore();
-
-    watch(
-      () => props.profile,
-      (newProfile) => {
-        localProfile.value = { ...newProfile };
-      }
-    );
+    const user = ref<User>({
+      email: '',
+      given_name: '',
+      family_name: '',
+    });
 
     const handleUpdateProfile = async () => {
       try {
@@ -111,7 +100,7 @@ export default defineComponent({
           method: 'PUT',
           path: '/users/me',
           parameters: {
-            ...localProfile.value,
+            ...user.value,
           },
           useQueryString: false,
           forceRefreshToken: false,
@@ -193,12 +182,33 @@ export default defineComponent({
       });
     };
 
+    const loadUser = async () => {
+      const response = await invokeApi({
+        index: 4,
+        method: 'GET',
+        path: '/users/me',
+        parameters: {},
+        useQueryString: false,
+        forceRefreshToken: false,
+      });
+
+      user.value = {
+        email: response.data.email,
+        given_name: response.data.given_name,
+        family_name: response.data.family_name,
+      };
+    };
+
+    onMounted(async () => {
+      loadUser();
+    });
+
     return {
       error,
       loading,
-      localProfile,
       handleUpdateProfile,
       handleDeleteProfile,
+      user,
     };
   },
 });

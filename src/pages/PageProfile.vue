@@ -106,7 +106,6 @@ import { computed, defineComponent, onMounted, Ref, ref } from 'vue';
 import { translateError } from '../utils/errors.utils';
 import { Profile } from '../types/profile';
 import UpdateProfileInformations from '../components/UpdateProfileInformations.vue';
-import { invokeApi } from '../services/ServicesUsers';
 import { isValidPassword } from 'src/utils/accounts.util';
 
 interface Invoice {
@@ -161,7 +160,6 @@ export default defineComponent({
 
     onMounted(() => {
       getUserState();
-      getSubscriptions();
     });
 
     const getUserState = async () => {
@@ -182,29 +180,6 @@ export default defineComponent({
       } catch (error) {
         error_message.value = translateError(error as QueryError);
         access_token.value = null;
-      }
-    };
-
-    const getSubscriptions = async () => {
-      const subscriptionsFetch = (
-        await invokeApi({
-          index: 1,
-          method: 'GET',
-          path: '/invoices/me',
-          parameters: {},
-          useQueryString: false,
-          forceRefreshToken: false,
-        })
-      ).data as Subscription[];
-
-      subscriptions.value = subscriptionsFetch;
-    };
-
-    const handleDownloadInvoice = async (invoice_pdf: string) => {
-      try {
-        window.location.href = invoice_pdf;
-      } catch (error) {
-        console.error(error);
       }
     };
 
@@ -253,13 +228,11 @@ export default defineComponent({
       auth_time,
       auth_time_date,
       subscriptions,
-      getSubscriptions,
-      logOut,
-      handleDownloadInvoice,
       authStore,
       profile,
       password_dict,
       formatDate,
+      logOut,
       handleResetPassword,
     };
   },

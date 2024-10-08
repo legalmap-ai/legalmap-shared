@@ -12,6 +12,16 @@
       <span :class="{ active: annual }" @click="annual = true"> Tarif annuel </span>
     </div>
 
+    {{ openDialog }}
+    <q-dialog
+      v-model="openDialog.open"
+      persistent
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <SubscriptionInformationsForm @submit="handleSubscribe(openDialog.plan)" />
+    </q-dialog>
+
     <div class="cards">
       <div class="card">
         <div class="card__title">Starter</div>
@@ -39,7 +49,7 @@
           id="section-pricing-subscribe-starter"
           small
           style="width: 80%"
-          @click="handleSubscribe('starter')"
+          @click="handleAskInformations('starter')"
           :size="16"
           >Souscrire</BaseButton
         >
@@ -352,11 +362,15 @@
 import { Notify } from 'quasar';
 import BaseButton from 'src/components/BaseButton.vue';
 import { invokeApi } from 'src/services/ServicesUsers';
-import { computed, ref } from 'vue';
+import { Ref, computed, ref } from 'vue';
+import SubscriptionInformationsForm from './SubscriptionInformationsForm.vue';
 
 const annual = ref(true);
-
 const members = ref(2);
+const openDialog = ref({
+  plan: '',
+  open: false,
+}) as Ref<{ plan: string; open: boolean }>;
 
 const getPrice = computed(() => {
   const unitPrice = annual.value ? 312 : 29.0;
@@ -366,6 +380,13 @@ const getPrice = computed(() => {
     return `${(unitPrice * members.value).toFixed(2)}€`;
   }
 });
+
+const handleAskInformations = (plan: string) => {
+  openDialog.value = {
+    plan: plan,
+    open: true,
+  };
+};
 
 const handleSubscribe = async (plan: string) => {
   console.log(plan);

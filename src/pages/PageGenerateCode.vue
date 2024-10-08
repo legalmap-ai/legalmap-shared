@@ -107,6 +107,7 @@ import { Notify } from 'quasar';
 import { invokeApi } from 'src/services/ServicesUsers';
 import { defineComponent, ref, onMounted } from 'vue';
 import { QTableColumn } from 'quasar';
+import { useRouter } from 'vue-router';
 
 interface Coupon {
   percent_off: number;
@@ -133,6 +134,7 @@ export default defineComponent({
     const promoCodes = ref<Code[]>([]);
     const isGenerating = ref(false);
     const isLoading = ref(false);
+    const router = useRouter();
 
     // Colonnes du tableau avec typage explicite
     const columns: QTableColumn<Code>[] = [
@@ -156,7 +158,7 @@ export default defineComponent({
         name: 'redeem_by',
         label: "Date d'expiration",
         align: 'left',
-        field: (row: Code) => row.coupon.redeem_by,
+        field: (row: Code) => parseInt(row.coupon.redeem_by),
         sortable: true,
       },
       {
@@ -267,11 +269,11 @@ export default defineComponent({
           });
         }
       } catch (error) {
-        console.error('Erreur lors de la récupération des codes promo :', error);
         Notify.create({
-          message: 'Erreur lors de la récupération des codes promo',
+          message: "Vous n'êtes pas autorisé à accéder à cette ressource",
           color: 'negative',
         });
+        router.push('/');
       } finally {
         isLoading.value = false;
       }

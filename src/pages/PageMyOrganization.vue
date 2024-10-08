@@ -2,6 +2,14 @@
   <q-page padding>
     <h1 class="text-h4 q-mb-md">Mes Organisations</h1>
 
+    <q-card flat bordered class="q-mb-md" style="background-color: black">
+      <q-card-section>
+        <div class="flex q-gutter-md items-center">
+          <SelectOrganization />
+        </div>
+      </q-card-section>
+    </q-card>
+
     <!-- Indicateur de chargement initial -->
     <div v-if="isLoading" class="flex justify-center q-mt-md">
       <q-spinner color="primary" />
@@ -21,9 +29,7 @@
           />
 
           <div v-if="organization.members">
-            <p class="q-mt-md q-mb-none">
-              Membres ({{ organization.members.length }}/{{ getMaxMembers }}) :
-            </p>
+            <p class="q-mt-md q-mb-none">Membres ({{ organization.members.length }}) :</p>
             <div class="q-mb-sm">
               <q-chip
                 v-for="member in organization.members"
@@ -43,35 +49,30 @@
                 dense
                 outlined
                 type="email"
-                :rules="[
-                  (val) => !!val || 'L\'email est requis',
-                  (val) => isValidEmail(val) || 'Entrez un email valide',
-                ]"
+                @keyup.enter="handleAddMember"
               />
               <q-btn
                 color="primary"
-                icon="add"
+                no-caps
+                style="height: 40px"
                 label="Ajouter"
                 @click="handleAddMember"
                 :disabled="isSaving"
               />
             </div>
           </div>
-
-          <q-btn
-            class="q-mt-lg"
-            color="primary"
-            label="Enregistrer"
-            @click="handleSave"
-            :loading="isSaving"
-            :disabled="isSaving"
-          />
         </q-card-section>
 
         <!-- Abonnements de l'organisation -->
-        <q-card-section v-if="organization.subscription && organization.subscription.length">
+        <q-card-section v-if="organization.subscriptions && organization.subscriptions.length">
           <h3 class="text-h6 q-mb-md">Détails des Abonnements</h3>
-          <q-table :rows="organization.subscription" :columns="columns" row-key="_id" flat dense>
+          <q-table
+            :rows="organization.subscriptions"
+            :columns="columns"
+            row-key="subscription"
+            flat
+            dense
+          >
             <template v-slot:body="props">
               <q-tr :props="props">
                 <q-td key="plan" :props="props"> {{ props.row.plan }} </q-td>
@@ -80,6 +81,15 @@
                 <q-td key="startDate" :props="props"> {{ formatDate(props.row.startDate) }} </q-td>
                 <q-td key="endDate" :props="props"> {{ formatDate(props.row.endDate) }} </q-td>
                 <q-td key="active" :props="props"> {{ props.row.active ? 'Oui' : 'Non' }} </q-td>
+                <q-td key="members" :props="props">
+                  <q-select
+                    dense
+                    outlined
+                    multiple
+                    v-model="props.row.members"
+                    :options="organization.members"
+                  />
+                </q-td>
                 <q-td key="canceled" :props="props">
                   {{ props.row.canceled ? 'Oui' : 'Non' }}
                 </q-td>
@@ -102,6 +112,12 @@
         <q-card-section v-else class="q-mt-md">
           <q-banner dense color="grey-2"> Aucun abonnement en cours. </q-banner>
         </q-card-section>
+
+        <q-card-section>
+          <BaseButton @click="handleSave">
+            {{ isSaving ? 'Sauvegarde en cours...' : 'Sauvegarder' }}
+          </BaseButton>
+        </q-card-section>
       </q-card>
 
       <q-card>
@@ -113,19 +129,18 @@
                 <q-item
                   clickable
                   v-ripple
-                  v-for="subscription in subscriptions"
-                  :key="subscription._id"
+                  v-for="subscription in subscriptions.filter(
+                    (sub) => sub.invoice_details?.invoice_pdf
+                  )"
+                  :key="subscription.subscription"
+                  @click="handleDownloadInvoice(subscription.invoice_details.invoice_pdf)"
                 >
                   <q-item-section>
                     <q-item-label
                       >Facture {{ subscription.plan }}
                       <span class="text-caption"> ({{ formatDate(subscription.startDate) }})</span>
                     </q-item-label>
-                    <q-item-label
-                      caption
-                      @click="handleDownloadInvoice(subscription.invoice_details.invoice_pdf)"
-                      >Cliquez pour télécharger</q-item-label
-                    >
+                    <q-item-label caption>Cliquez pour télécharger</q-item-label>
                   </q-item-section>
 
                   <q-item-section side>
@@ -155,17 +170,19 @@ import { Dialog, Notify } from 'quasar';
 import { invokeApi } from 'src/services/ServicesUsers';
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import { QTableColumn } from 'quasar';
+import SelectOrganization from 'src/components/SelectOrganization.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 type Email = string;
 
 interface Subscription {
-  _id: string;
   active: boolean;
   startDate: string;
   endDate: string;
   invoice: string;
   plan: string;
   price: number;
+  members: Email[];
   seats: number;
   subscription: string;
   invoice_details: {
@@ -180,11 +197,15 @@ interface Organization {
   _id: string;
   organization_name: string;
   members: Email[];
-  subscription: Subscription[];
+  subscriptions: Subscription[];
 }
 
 export default defineComponent({
   name: 'LegalmapMyOrganizations',
+  components: {
+    SelectOrganization,
+    BaseButton,
+  },
   setup() {
     // États réactifs
     const organization = ref<Organization | null>(null);
@@ -195,6 +216,7 @@ export default defineComponent({
       { name: 'startDate', label: 'Début', align: 'center', field: 'startDate', sortable: true },
       { name: 'endDate', label: 'Fin', align: 'center', field: 'endDate', sortable: true },
       { name: 'active', label: 'Actif', align: 'center', field: 'active', sortable: true },
+      { name: 'members', label: 'Membres', align: 'center', field: 'members' },
       { name: 'canceled', label: 'Annulé', align: 'center', field: 'canceled', sortable: true },
       { name: 'actions', label: 'Actions', align: 'center', field: 'actions' },
     ]);
@@ -205,7 +227,7 @@ export default defineComponent({
 
     // Propriété calculée pour obtenir le nombre maximal de membres
     const getMaxMembers = computed<number>(() => {
-      return organization.value?.subscription.reduce((acc, sub) => acc + sub.seats, 0) || 0;
+      return organization.value?.subscriptions.reduce((acc, sub) => acc + sub.seats, 0) || 0;
     });
 
     // Fonction de validation d'email
@@ -250,18 +272,6 @@ export default defineComponent({
         return;
       }
 
-      if (
-        organization.value?.members &&
-        organization.value?.members.length >= getMaxMembers.value
-      ) {
-        Notify.create({
-          message: 'Nombre maximum de membres atteint',
-          position: 'top',
-          color: 'negative',
-        });
-        return;
-      }
-
       if (organization.value) {
         organization.value.members.push(email);
         Notify.create({
@@ -276,6 +286,12 @@ export default defineComponent({
     const handleRemoveMember = (member: Email) => {
       if (organization.value) {
         organization.value.members = organization.value.members.filter((m) => m !== member);
+
+        // Remove member from subscriptions
+        for (const subscription of organization.value.subscriptions) {
+          subscription.members = subscription.members.filter((m) => m !== member);
+        }
+
         Notify.create({
           message: 'Membre retiré avec succès',
           color: 'positive',
@@ -286,8 +302,37 @@ export default defineComponent({
     // Fonction pour sauvegarder les modifications de l'organisation
     const handleSave = async () => {
       if (!organization.value) return;
-
       isSaving.value = true;
+
+      if (!organization.value.organization_name) {
+        Notify.create({
+          message: "Le nom de l'organisation est requis",
+          color: 'negative',
+        });
+        isSaving.value = false;
+        return;
+      }
+
+      if (organization.value.members.length === 0) {
+        Notify.create({
+          message: "L'organisation doit avoir au moins un membre",
+          color: 'negative',
+        });
+        isSaving.value = false;
+        return;
+      }
+
+      // check number of members in subscriptions
+      for (const subscription of organization.value.subscriptions) {
+        if (subscription.members.length > subscription.seats) {
+          Notify.create({
+            message: `Le nombre de membres pour l'abonnement ${subscription.plan} dépasse le nombre de places`,
+            color: 'negative',
+          });
+          isSaving.value = false;
+          return;
+        }
+      }
 
       try {
         await invokeApi({
@@ -297,7 +342,7 @@ export default defineComponent({
           parameters: {
             organization_name: organization.value.organization_name,
             members: organization.value.members,
-            subscription: organization.value.subscription,
+            subscriptions: organization.value.subscriptions,
           },
           useQueryString: false,
           forceRefreshToken: false,
@@ -308,11 +353,18 @@ export default defineComponent({
           color: 'positive',
         });
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde de l'organisation :", error);
-        Notify.create({
-          message: "Erreur lors de la sauvegarde de l'organisation",
-          color: 'negative',
-        });
+        const err = error as { status: number };
+        if (err.status === 304) {
+          Notify.create({
+            message: "Aucune modification n'a été apportée",
+            color: 'warning',
+          });
+        } else {
+          Notify.create({
+            message: "Erreur lors de la sauvegarde de l'organisation",
+            color: 'negative',
+          });
+        }
       } finally {
         isSaving.value = false;
       }
@@ -368,6 +420,10 @@ export default defineComponent({
     const handleDownloadInvoice = async (invoice_pdf: string) => {
       try {
         window.location.href = invoice_pdf;
+        Notify.create({
+          message: 'Téléchargement en cours',
+          color: 'primary',
+        });
       } catch (error) {
         console.error(error);
       }
@@ -396,7 +452,7 @@ export default defineComponent({
             forceRefreshToken: false,
           });
 
-          getSubscriptions();
+          fetchOrganization();
 
           Notify.create({
             message: 'Abonnement annulé avec succès',
